@@ -2,10 +2,10 @@
 
 This repository contains the primary user-facing applications for the HealthChain ecosystem, built with Next.js, TypeScript, and Tailwind CSS.
 
-[span_0](start_span)This project serves three distinct user roles as defined in the MVP plan[span_0](end_span):
-1.  **[span_1](start_span)Resident PWA:** The mobile-first Progressive Web App for individual users to manage their health data[span_1](end_span).
-2.  **[span_2](start_span)Clinic Web App:** A secure web portal for verified clinics to write new records and view permissions[span_2](end_span).
-3.  **[span_3](start_span)Health Authority Dashboard:** A web portal for administrators to manage alerts and view community metrics[span_3](end_span).
+This project serves three distinct user roles as defined in the MVP plan:
+1.  **Resident PWA:** The mobile-first Progressive Web App for individual users to manage their health data.
+2.  **Clinic Web App:** A secure web portal for verified clinics to write new records and view permissions.
+3.  **Health Authority Dashboard:** A web portal for administrators to manage alerts and view community metrics.
 
 ➡️ **View the main organization page:** [Link to your GitHub Org]
 
@@ -20,11 +20,11 @@ This repository contains the primary user-facing applications for the HealthChai
 * **State Management:** Zustand
 * **Data Fetching:** Axios
 * **Cardano Integration:** @meshsdk/react (for wallet connection & DID management)
-* **[span_4](start_span)[span_5](start_span)QR Code:** `react-qr-code` & `react-qr-scanner` (for VC sharing[span_4](end_span)[span_5](end_span))
-* **[span_6](start_span)AI Chat:** `@chatscope/chat-ui-kit-react` (for HealthChain Assistant UI[span_6](end_span))
-* **[span_7](start_span)Notifications:** Firebase (for receiving alerts[span_7](end_span))
+* **QR Code:** `react-qr-code` & `react-qr-scanner` (for VC sharing)
+* **AI Chat:** `@chatscope/chat-ui-kit-react` (for HealthChain Assistant UI)
+* **Notifications:** Firebase (for receiving alerts)
 
-### [span_8](start_span)Core MVP Features[span_8](end_span)
+### Core MVP Features
 
 * **Resident (S-1.x):**
     * (S-1.0) User Onboarding & DID Generation
