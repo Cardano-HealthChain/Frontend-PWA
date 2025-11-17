@@ -1,5 +1,6 @@
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
+import Link from "next/link";
 
 export const Hero = () => {
   return (
@@ -8,7 +9,9 @@ export const Hero = () => {
       <div className="flex flex-col items-start justify-center text-left">
         <div className="flex items-center w-full md:w-1/2 justify-between mb-4 rounded-full px-3 py-2 shadow-md border border-gray-50 bg-white">
           <p className="text-xs text-muted-foreground">Have a Question?</p>
-          <Button size='sm'>Ask AI</Button>
+          <Link href="/" className="cursor-pointer">
+            <Button size='sm'>Ask AI</Button>
+          </Link>
         </div>
         <h1 className="text-4xl font-extrabold tracking-tight md:text-4xl lg:text-6xl">
           <span className="text-primary">Decentralized </span> Community Health
@@ -19,9 +22,11 @@ export const Hero = () => {
           with clinics only when you choose, and receive essential health alerts
           that protect your community.
         </p>
-        <Button size="lg" className="mt-8">
-          Learn More
-        </Button>
+        <Link href="/" className="cursor-pointer">
+          <Button size="lg" className="mt-8">
+            Learn More
+          </Button>
+        </Link>
       </div>
       {/* Right Column (Image) */}
       <div className="flex items-center justify-center">

@@ -1,3 +1,5 @@
+"use client"
+
 import Image from "next/image"
 import Link from "next/link"
 
@@ -18,14 +20,13 @@ export default function AuthLayout({
         <Image
           src="/images/logo.png"
           alt="HealthChain Logo"
-          width={36}
-          height={36}
+          width={150}
+          height={150}
           onError={(e) =>
             (e.currentTarget.src =
               "https://placehold.co/36x36/6002ee/ffffff?text=H")
           }
         />
-        <span className="text-2xl font-semibold">HealthChain</span>
       </Link>
       <main>{children}</main>
       <p className="mt-12 max-w-lg text-center text-xs text-muted-foreground">

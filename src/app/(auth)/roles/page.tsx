@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/card"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
-import { CheckCircle, ArrowRight } from "lucide-react"
+import { CircleCheck, ArrowRight } from "lucide-react"
 import Image from "next/image"
 import { cn } from "@/lib/utils"
 import { useState } from "react"
@@ -22,7 +22,7 @@ const roles = [
   {
     name: "Resident",
     id: "resident",
-    icon: "/images/icon-resident.svg",
+    icon: "/images/id.png",
     description: "Take control of your health data and earn rewards.",
     features: [
       "Create your digital health ID",
@@ -34,7 +34,7 @@ const roles = [
   {
     name: "Clinic",
     id: "clinic",
-    icon: "/images/icon-clinic.svg",
+    icon: "/images/clinic.png",
     description: "Verify patients instantly and access authorized records.",
     features: [
       "Instant patient verification",
@@ -46,7 +46,7 @@ const roles = [
   {
     name: "Health Authority",
     id: "authority",
-    icon: "/images/icon-authority.svg",
+    icon: "/images/alert.png",
     description: "Monitor community health and send targeted alerts.",
     features: [
       "Community health analysis",
@@ -63,12 +63,12 @@ export default function SignUpPage() {
 
   const handleContinue = () => {
     // Navigate to the correct registration page based on role
-    router.push(`/signup/${selectedRole}`)
+    router.push(`/sign-up/${selectedRole}`)
   }
 
   return (
     <div className="flex flex-col items-center">
-      <Card className="w-full max-w-4xl shadow-lg border-0 bg-transparent">
+      <Card className="w-full max-w-4xl border-0">
         <CardHeader className="text-center">
           <CardTitle className="text-3xl font-bold">Choose your Role</CardTitle>
           <CardDescription>
@@ -115,7 +115,7 @@ export default function SignUpPage() {
                 <ul className="mt-6 flex flex-col gap-3">
                   {role.features.map((feature) => (
                     <li key={feature} className="flex items-start gap-2">
-                      <CheckCircle className="h-5 w-5 flex-shrink-0 text-primary" />
+                      <CircleCheck className="h-5 w-5 flex-shrink-0 fill-primary" />
                       <span className="text-sm font-medium">{feature}</span>
                     </li>
                   ))}
