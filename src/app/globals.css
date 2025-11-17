@@ -35,6 +35,15 @@
     --color-feature-cyan: hsl(187 80% 94%);
     --color-feature-yellow: hsl(48 100% 95%);
 
+    /* HTW card colors */
+    --color-card1-lightblue: hsla(235, 65%, 92%, 1);
+    --color-card2-lightorange: hsla(43, 78%, 84%, 0.7);
+    --color-card3-lightgreen: hsla(92, 100%, 81%, 1);
+
+    --color-blue: hsla(235, 100%, 50%, 0.15);
+    --color-orange: hsla(43, 78%, 84%, 1);
+    --color-green: hsla(145, 77%, 40%, 0.15);
+
     /* Border */
     --color-border: hsl(214.3 31.8% 91.4%);
     --color-input: hsl(214.3 31.8% 91.4%);
