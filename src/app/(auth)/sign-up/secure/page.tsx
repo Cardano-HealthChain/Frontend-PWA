@@ -18,9 +18,9 @@ import { Label } from "@/components/ui/label"
 
 export default function SecureAccountPage() {
   return (
-    <Card className="w-full max-w-lg shadow-lg">
-      <CardHeader className="text-center">
-        <CardTitle className="text-3xl font-bold">
+    <Card className="w-full max-w-3xl border-none bg-transparent my-12">
+      <CardHeader className="text-center mb-8">
+        <CardTitle className="text-2xl lg:text-4xl font-bold">
           Secure Your Account
         </CardTitle>
         <CardDescription>

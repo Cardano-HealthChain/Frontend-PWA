@@ -87,6 +87,7 @@ export const Navbar = () => {
                   {link.label}
                 </Link>
               ))}
+              <Link href="/" className="cursor-pointer">
               <Button
                 size="full"
                 className="mt-4"
@@ -94,6 +95,7 @@ export const Navbar = () => {
               >
                 Get Started
               </Button>
+              </Link>
             </nav>
           </SheetContent>
         </Sheet>

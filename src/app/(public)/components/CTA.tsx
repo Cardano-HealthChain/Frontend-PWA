@@ -1,4 +1,5 @@
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
+import Link from "next/link"
 
 export const CTA = () => {
   return (
@@ -18,9 +19,11 @@ export const CTA = () => {
             <br />
             Health Data Today.
           </h2>
-          <Button size="lg" variant="secondary" className="mt-8 font-semibold">
-            Get Started Now
-          </Button>
+          <Link href="/roles" className="cursor-pointer">
+            <Button size="lg" variant="secondary" className="mt-8 font-semibold">
+              Get Started Now
+            </Button>
+          </Link>
         </div>
       </div>
     </section>
