@@ -29,7 +29,7 @@ const SocialButton = ({
       alt={provider}
       width={20}
       height={20}
-      className="mr-2"
+      className="mr-2 text-xs lg:text-base"
       onError={(e) =>
         (e.currentTarget.src = `https://placehold.co/20x20/f0f4ff/6002ee?text=${provider[0]}`)
       }
@@ -40,15 +40,22 @@ const SocialButton = ({
 
 export default function LoginPage() {
   return (
-    <Card className="w-full max-w-md shadow-lg">
+    <Card className="w-full max-w-lg bg-transparent border-none">
       <CardHeader className="text-center">
-        <CardTitle className="text-3xl font-bold">Welcome Back</CardTitle>
+        <CardTitle className="text-2xl lg:text-4xl font-bold">
+          Welcome Back
+        </CardTitle>
         <CardDescription>Sign in to access your Health Data</CardDescription>
       </CardHeader>
       <CardContent className="grid gap-6">
         <div className="grid gap-2">
           <Label htmlFor="email">Email or Username</Label>
-          <Input id="email" type="email" placeholder="ace.designs@gmail.com" />
+          <Input
+            id="email"
+            type="email"
+            placeholder="ace.designs@gmail.com"
+            className="border-primary bg-white"
+          />
         </div>
         <div className="grid gap-2">
           <div className="flex items-center justify-between">
@@ -60,7 +67,11 @@ export default function LoginPage() {
               Forgot Password?
             </Link>
           </div>
-          <Input id="password" type="password" />
+          <Input
+            id="password"
+            type="password"
+            className="border-primary bg-white"
+          />
         </div>
         <div className="flex items-center gap-2">
           <Checkbox id="remember" />
@@ -68,7 +79,9 @@ export default function LoginPage() {
             Remember me for 30 days
           </Label>
         </div>
-        <Button className="w-full font-semibold">Sign In</Button>
+        <Button size="full" className="w-full font-semibold">
+          Sign In
+        </Button>
 
         {/* ----- OR CONTINUE WITH ----- */}
         <div className="flex items-center gap-4">
@@ -81,22 +94,25 @@ export default function LoginPage() {
 
         <div className="grid grid-cols-2 gap-4">
           <SocialButton provider="Google" icon="/images/google.svg" />
-          <SocialButton provider="GitHub" icon="/images/github.svg" />
-        </div>
-        <Button variant="outline" className="w-full">
-          <Image
-            src="/images/metamask.svg"
-            alt="Metamask"
-            width={20}
-            height={20}
-            className="mr-2"
-            onError={(e) =>
-              (e.currentTarget.src =
-                "https://placehold.co/20x20/f0f4ff/6002ee?text=M")
-            }
+          <SocialButton
+            provider="Connect with Metamask"
+            icon="/images/metamask.svg"
           />
-          Connect with Metamask
-        </Button>
+          {/* <Button variant="outline" className="w-full text-xs lg:text-base">
+            <Image
+              src="/images/metamask.svg"
+              alt="Metamask"
+              width={20}
+              height={20}
+              className="lg:mr-2 mr-0"
+              onError={(e) =>
+                (e.currentTarget.src =
+                  "https://placehold.co/20x20/f0f4ff/6002ee?text=M")
+              }
+            />
+            Connect with Metamask
+          </Button> */}
+        </div>
       </CardContent>
       <CardFooter className="justify-center">
         <p className="text-sm text-muted-foreground">

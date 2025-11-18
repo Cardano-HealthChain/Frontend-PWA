@@ -22,7 +22,7 @@ export const Hero = () => {
           with clinics only when you choose, and receive essential health alerts
           that protect your community.
         </p>
-        <Link href="/" className="cursor-pointer">
+        <Link href="/sign-up" className="cursor-pointer">
           <Button size="lg" className="mt-8">
             Learn More
           </Button>

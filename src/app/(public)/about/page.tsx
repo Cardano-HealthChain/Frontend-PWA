@@ -67,7 +67,7 @@ export default function AboutPage() {
                 HealthChain is your partner in building a future where every
                 individual has sovereign control over their health information.
               </p>
-              <Link href="/" className="">
+              <Link href="/sign-up" className="">
               <Button size="full" className="mt-8 font-semibold">
                 Get Started
               </Button>
