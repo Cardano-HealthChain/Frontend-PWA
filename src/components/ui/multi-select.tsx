@@ -25,6 +25,7 @@ interface MultiSelectProps {
   onChange: React.Dispatch<React.SetStateAction<string[]>>
   className?: string
   placeholder?: string
+  createText?: string
 }
 
 export function MultiSelect({
@@ -32,7 +33,8 @@ export function MultiSelect({
   selected,
   onChange,
   className,
-  placeholder = "Add...",
+  placeholder = "Select...",
+  createText = "Add item",
 }: MultiSelectProps) {
   const [open, setOpen] = React.useState(false)
   const [inputValue, setInputValue] = React.useState("")
@@ -65,7 +67,9 @@ export function MultiSelect({
           >
             {options.find((o) => o.value === value)?.label || value}
             <button
-                aria-label={`Remove selected item ${options.find((o) => o.value === value)?.label || value}`}
+              aria-label={`Remove selected item ${
+                options.find((o) => o.value === value)?.label || value
+              }`}
               className="rounded-full outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2"
               onClick={() => removeSelectable(value)}
             >

@@ -31,6 +31,7 @@ const conditionOptions = [
 
 export function HealthInfoForm() {
   const [bloodType, setBloodType] = React.useState("");
+  const [genoType, setGenoType] = React.useState("");
   const [allergies, setAllergies] = React.useState<string[]>([
     "penicillin",
     "latex",
@@ -45,10 +46,10 @@ export function HealthInfoForm() {
       <div className="grid gap-2">
         <Label htmlFor="blood-type">Blood Type</Label>
         <Select onValueChange={setBloodType}>
-          <SelectTrigger id="blood-type">
+          <SelectTrigger className="border-primary" id="blood-type">
             <SelectValue placeholder="Select Blood Type" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="bg-white">
             <SelectItem value="A+">A+</SelectItem>
             <SelectItem value="A-">A-</SelectItem>
             <SelectItem value="B+">B+</SelectItem>
@@ -69,11 +70,11 @@ export function HealthInfoForm() {
 
       <div className="grid gap-2">
         <Label htmlFor="genotype">Genotype</Label>
-        <Select>
-          <SelectTrigger id="genotype">
+        <Select onValueChange={setGenoType}>
+          <SelectTrigger className="border-primary" id="genotype">
             <SelectValue placeholder="Select Genotype" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="bg-white">
             <SelectItem value="AA">AA</SelectItem>
             <SelectItem value="AS">AS</SelectItem>
             <SelectItem value="SS">SS</SelectItem>
@@ -81,6 +82,11 @@ export function HealthInfoForm() {
             <SelectItem value="unknown">I don't know</SelectItem>
           </SelectContent>
         </Select>
+        {genoType === "unknown" && (
+          <p className="text-xs text-muted-foreground">
+            You can update this later after a clinic visit.
+          </p>
+        )}
       </div>
 
       <div className="grid gap-2 md:col-span-2">

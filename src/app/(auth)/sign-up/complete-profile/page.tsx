@@ -54,7 +54,7 @@ export default function CompleteProfilePage() {
           Complete your Profile
         </CardTitle>
         <CardDescription>
-          <nav className="mt-6 flex items-center justify-center gap-4">
+         <nav className="mt-6 flex items-center justify-center gap-4">
             {steps.map((step) => (
               <div
                 key={step.id}
@@ -65,16 +65,16 @@ export default function CompleteProfilePage() {
                     : "text-muted-foreground"
                 )}
               >
-                <span className="text-sm font-semibold">{step.name}</span>
+                <span className="text-sm">{step.name}</span>
                 {step.id === currentStep && (
-                  <div className="mt-2 h-1 w-12 rounded-full bg-primary" />
+                  <div className="mt-1 h-0.5 w-20 rounded-full bg-primary" />
                 )}
               </div>
             ))}
           </nav>
         </CardDescription>
       </CardHeader>
-      <CardContent className="mt-6">
+      <CardContent className="mt-6 max-w-xl">
         {/* Render the correct form based on the current step */}
         {currentStep === 1 && <PersonalDetailsForm />}
         {currentStep === 2 && <HealthInfoForm />}
@@ -83,10 +83,10 @@ export default function CompleteProfilePage() {
 
         {/* Navigation Buttons */}
         <div className="mt-10 flex justify-between">
-          <Button variant="outline" onClick={handleBack}>
+          <Button size="full" variant="outline" className="border-primary" onClick={handleBack}>
             Back
           </Button>
-          <Button className="font-semibold" onClick={handleNext}>
+          <Button size="full" className="font-semibold" onClick={handleNext}>
             {currentStep === 4 ? "Finish" : "Continue"}
           </Button>
         </div>
