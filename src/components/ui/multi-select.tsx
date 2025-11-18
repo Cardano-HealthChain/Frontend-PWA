@@ -52,13 +52,15 @@ export function MultiSelect({
   }
 
   const addCustom = (value: string) => {
-    if (!value || selected.includes(value)) return
-    onChange([...selected, value])
+    const formattedValue = value.trim();
+    if (!formattedValue || selected.includes(formattedValue)) return;
+    // Add the new value to the selected array
+    onChange([...selected, formattedValue]);
   }
 
   return (
-    <div className={cn("w-full", className)}>
-      <div className="flex flex-wrap gap-2 rounded-md border border-input p-2">
+    <div className={cn("w-full ", className)}>
+      <div className="flex flex-wrap gap-2 rounded-md border border-primary p-2">
         {selected.map((value) => (
           <Badge
             variant="secondary"
@@ -96,7 +98,7 @@ export function MultiSelect({
           />
           <div className="relative">
             {open && selectables.length > 0 && (
-              <CommandList className="absolute top-2 w-full rounded-md border bg-popover shadow-md outline-none animate-in data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95">
+              <CommandList className="absolute top-2 w-full rounded-md border bg-white shadow-md outline-none animate-in data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95">
                 <CommandGroup>
                   {selectables.map((option) => (
                     <CommandItem

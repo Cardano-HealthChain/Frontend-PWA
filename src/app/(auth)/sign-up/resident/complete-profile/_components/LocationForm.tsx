@@ -54,23 +54,23 @@ const nigerianStates = [
 export function LocationForm() {
   return (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-      <p className="text-sm text-muted-foreground md:col-span-2">
+      <p className="text-sm text-primary md:col-span-2">
         This determines geotargeted alerts, vaccination drives, and outbreak
         notices.
       </p>
 
       <div className="grid gap-2">
         <Label htmlFor="country">Country</Label>
-        <Input id="country" defaultValue="Nigeria" readOnly />
+        <Input id="country" defaultValue="Nigeria" readOnly className="border-primary" />
       </div>
 
       <div className="grid gap-2">
         <Label htmlFor="state">State / Region</Label>
         <Select>
-          <SelectTrigger id="state">
+          <SelectTrigger className="border-primary" id="state">
             <SelectValue placeholder="Select State / Region" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="bg-white">
             {nigerianStates.map((state) => (
               <SelectItem key={state} value={state.toLowerCase()}>
                 {state}

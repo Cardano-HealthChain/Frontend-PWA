@@ -22,7 +22,7 @@ export default function ResidentSignUpPage() {
   const [showPassword, setShowPassword] = useState(false)
 
   const handleContinue = () => {
-    router.push("/sign-up/secure") // Navigate to the PIN screen
+    router.push("/sign-up/resident/secure") // Navigate to the PIN screen
   }
 
   return (

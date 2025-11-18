@@ -96,6 +96,7 @@ export function HealthInfoForm() {
           selected={allergies}
           onChange={setAllergies}
           placeholder="Add Allergy"
+          className="border-primary"
         />
       </div>
 
@@ -106,11 +107,12 @@ export function HealthInfoForm() {
           selected={conditions}
           onChange={setConditions}
           placeholder="Add Condition"
+          className="border-primary"
         />
         <p className="text-xs text-muted-foreground">
           Used for the AI Assistant into Phase 2 and for alert personalization.
         </p>
       </div>
     </div>
-  );
+  )
 }

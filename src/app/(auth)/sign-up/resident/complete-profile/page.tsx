@@ -74,7 +74,7 @@ export default function CompleteProfilePage() {
           </nav>
         </CardDescription>
       </CardHeader>
-      <CardContent className="mt-6 max-w-xl">
+      <CardContent className="mt-6 lg:px-28">
         {/* Render the correct form based on the current step */}
         {currentStep === 1 && <PersonalDetailsForm />}
         {currentStep === 2 && <HealthInfoForm />}

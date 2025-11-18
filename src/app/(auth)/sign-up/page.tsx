@@ -76,7 +76,7 @@ export default function SignUpPage() {
             onboarding.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="capitalize">
           <RadioGroup
             defaultValue="resident"
             onValueChange={setSelectedRole}
@@ -87,7 +87,7 @@ export default function SignUpPage() {
                 key={role.id}
                 htmlFor={role.id}
                 className={cn(
-                  "relative cursor-pointer rounded-lg border-2 bg-background p-6 shadow-md transition-all",
+                  "relative cursor-pointer rounded-lg border-2 bg-background p-6 shadow-md transition-all capitalize hover:border-primary",
                   selectedRole === role.id
                     ? "border-primary ring-2 ring-primary"
                     : "border-border"

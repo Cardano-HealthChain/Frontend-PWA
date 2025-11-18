@@ -21,7 +21,7 @@ export default function SecureAccountPage() {
 
   const router = useRouter()
   const handleContinue = () => {
-    router.push("/sign-up/complete-profile") // Navigate to the Complete Profile screen
+    router.push("/sign-up/resident/complete-profile") // Navigate to the Complete Profile screen
   }
   return (
     <Card className="w-full max-w-3xl border-none bg-transparent my-12">
