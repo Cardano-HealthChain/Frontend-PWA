@@ -22,11 +22,11 @@ export default function ResidentSignUpPage() {
   const [showPassword, setShowPassword] = useState(false)
 
   const handleContinue = () => {
-    router.push("/sign-up/secure") // Navigate to the PIN screen
+    router.push("/sign-up/resident/secure") // Navigate to the PIN screen
   }
 
   return (
-    <Card className="w-full max-w-2xl border-none">
+    <Card className="w-full bg-transparent border-none">
       <CardHeader className="text-center">
         <CardTitle className="text-2xl lg:text-4xl font-bold">
           Register as a Resident
@@ -36,7 +36,7 @@ export default function ResidentSignUpPage() {
           onboarding.
         </CardDescription>
       </CardHeader>
-      <CardContent className="grid gap-6">
+      <CardContent className="grid gap-6 max-w-xl">
         <div className="grid gap-2">
           <Label htmlFor="did" className="flex items-center gap-1">
             Your DID <Info className="h-3 w-3 text-muted-foreground" />

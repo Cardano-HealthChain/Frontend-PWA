@@ -68,7 +68,7 @@ export default function SignUpPage() {
 
   return (
     <div className="flex flex-col items-center">
-      <Card className="w-full max-w-4xl border-0">
+      <Card className="w-full bg-transparent max-w-4xl border-0">
         <CardHeader className="text-center">
           <CardTitle className="text-3xl font-bold">Choose your Role</CardTitle>
           <CardDescription>
@@ -76,7 +76,7 @@ export default function SignUpPage() {
             onboarding.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="capitalize">
           <RadioGroup
             defaultValue="resident"
             onValueChange={setSelectedRole}
@@ -87,7 +87,7 @@ export default function SignUpPage() {
                 key={role.id}
                 htmlFor={role.id}
                 className={cn(
-                  "relative cursor-pointer rounded-lg border-2 bg-background p-6 shadow-md transition-all",
+                  "relative cursor-pointer rounded-lg border-2 bg-background p-6 shadow-md transition-all capitalize hover:border-primary",
                   selectedRole === role.id
                     ? "border-primary ring-2 ring-primary"
                     : "border-border"
@@ -115,7 +115,7 @@ export default function SignUpPage() {
                 <ul className="mt-6 flex flex-col gap-3">
                   {role.features.map((feature) => (
                     <li key={feature} className="flex items-start gap-2">
-                      <CircleCheck className="h-5 w-5 flex-shrink-0 fill-primary" />
+                      <CircleCheck className="h-5 w-5 flex-shrink-0 text-white fill-primary" />
                       <span className="text-sm font-medium">{feature}</span>
                     </li>
                   ))}
@@ -126,7 +126,7 @@ export default function SignUpPage() {
         </CardContent>
       </Card>
       <Button
-        size="lg"
+        size="full"
         className="mt-8 w-full max-w-md font-semibold"
         onClick={handleContinue}
       >
