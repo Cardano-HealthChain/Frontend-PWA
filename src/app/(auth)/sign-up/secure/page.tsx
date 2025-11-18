@@ -15,12 +15,18 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp"
 import { Label } from "@/components/ui/label"
+import { useRouter } from "next/navigation"
 
 export default function SecureAccountPage() {
+
+  const router = useRouter()
+  const handleContinue = () => {
+    router.push("/sign-up/complete-profile") // Navigate to the Complete Profile screen
+  }
   return (
     <Card className="w-full max-w-3xl border-none bg-transparent my-12">
       <CardHeader className="text-center mb-8">
-        <CardTitle className="text-2xl lg:text-4xl font-bold">
+        <CardTitle className="text-2xl lg:text-4xl font-bold"> 
           Secure Your Account
         </CardTitle>
         <CardDescription>
@@ -29,24 +35,44 @@ export default function SecureAccountPage() {
       </CardHeader>
       <CardContent className="flex flex-col items-center gap-8">
         <InputOTP maxLength={6}>
-          <InputOTPGroup>
-            <InputOTPSlot index={0} />
-            <InputOTPSlot index={1} />
-            <InputOTPSlot index={2} />
-            <InputOTPSlot index={3} />
-            <InputOTPSlot index={4} />
-            <InputOTPSlot index={5} />
+          <InputOTPGroup className="gap-4">
+            <InputOTPSlot
+              index={0}
+              className="w-14 h-18 border-primary bg-white rounded-lg"
+            />
+            <InputOTPSlot
+              index={1}
+              className="w-14 h-18 border-primary bg-white rounded-lg"
+            />
+            <InputOTPSlot
+              index={2}
+              className="w-14 h-18 border-primary bg-white rounded-lg"
+            />
+            <InputOTPSlot
+              index={3}
+              className="w-14 h-18 border-primary bg-white rounded-lg"
+            />
+            <InputOTPSlot
+              index={4}
+              className="w-14 h-18 border-primary bg-white rounded-lg"
+            />
+            <InputOTPSlot
+              index={5}
+              className="w-14 h-18 border-primary bg-white rounded-lg"
+            />
           </InputOTPGroup>
         </InputOTP>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center justify-start gap-2">
           <Checkbox id="biometrics" />
           <Label htmlFor="biometrics" className="font-normal">
             Enable Biometrics (Mobile Version Only)
           </Label>
         </div>
 
-        <Button className="w-full font-semibold">Continue</Button>
+        <Button size="full" className="w-full font-semibold" onClick={handleContinue}>
+          Continue
+        </Button>
       </CardContent>
     </Card>
   )

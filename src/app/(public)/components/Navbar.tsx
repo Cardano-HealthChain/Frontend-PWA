@@ -42,9 +42,11 @@ export const Navbar = () => {
             </Link>
           ))}
         </nav>
+        <Link href="/sign-up" >
         <Button size="full" className="lg:flex hidden">
           Get Started
         </Button>
+        </Link>
         {/* Mobile Nav - UPDATED */}
         <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
           <SheetTrigger asChild className="md:hidden">
@@ -87,7 +89,7 @@ export const Navbar = () => {
                   {link.label}
                 </Link>
               ))}
-              <Link href="/" className="cursor-pointer">
+              <Link href="/sign-up" className="cursor-pointer">
               <Button
                 size="full"
                 className="mt-4"

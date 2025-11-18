@@ -19,7 +19,7 @@ export const CTA = () => {
             <br />
             Health Data Today.
           </h2>
-          <Link href="/roles" className="cursor-pointer">
+          <Link href="/sign-up" className="cursor-pointer">
             <Button size="lg" variant="secondary" className="mt-8 font-semibold">
               Get Started Now
             </Button>
