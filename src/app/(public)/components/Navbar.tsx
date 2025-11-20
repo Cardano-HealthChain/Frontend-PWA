@@ -1,10 +1,12 @@
 "use client"
 import { useState } from "react";
+import { usePathname } from 'next/navigation'; 
 import Image from "next/image"
 import Link from "next/link"
 import { Button } from "@/components/ui/button" // From shadcn
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"; // Import Sheet components
 import { Menu } from "lucide-react"; // Import Menu icon
+import { cn } from "@/lib/utils";
 
 const navLinks = [
   { label: "Home", href: "/" },
@@ -17,6 +19,19 @@ const navLinks = [
 
 export const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const pathname = usePathname(); 
+
+  const isActive = (href: string) => {
+    // Check for root page separately
+    if (href === "/") {
+      return pathname === "/";
+    }
+    // Check for other pages (which might have trailing slashes or query params, simplified here)
+    return pathname.startsWith(href) && href !== "#features" && href !== "#how-it-works" && href !== "#faq";
+  };
+  
+  // Helper to handle hash links (features, how-it-works)
+  const isHashLink = (href: string) => href.startsWith("#");
 
   return (
     <header className="sticky top-0 z-50 w-full shadow-md backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -36,7 +51,11 @@ export const Navbar = () => {
             <Link
               key={link.href}
               href={link.href}
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
+              className={cn("text-sm font-medium text-muted-foreground transition-colors hover:text-primary hover:border-b hover:border-primary",
+              isActive(link.href) && !isHashLink(link.href)
+                  ? "text-primary border-b border-primary" 
+                  : "text-muted-foreground"
+              )}
             >
               {link.label}
             </Link>
@@ -83,7 +102,11 @@ export const Navbar = () => {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="text-lg font-medium text-muted-foreground transition-colors hover:text-primary"
+                  className={cn("text-lg font-medium text-muted-foreground transition-colors hover:text-primary hover:border-b hover:border-primary",
+                  isActive(link.href) && !isHashLink(link.href)
+                  ? "text-primary border-b border-primary" 
+                  : "text-muted-foreground"
+              )}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {link.label}
