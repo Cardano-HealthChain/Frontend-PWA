@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -16,15 +17,23 @@ import {
 } from "@/components/ui/input-otp"
 import { Label } from "@/components/ui/label"
 import { useRouter } from "next/navigation"
+import { HealthChainLoader } from "@/components/ui/HealthChainLoader"
 
 export default function SecureAccountPage() {
+  const [isLoading, setIsLoading] = useState(false);
 
   const router = useRouter()
   const handleContinue = () => {
-    router.push("/sign-up/resident/complete-profile") // Navigate to the Complete Profile screen
+    setIsLoading(true); // Show the loader
+    // Simulate a delay for loading (e.g., waiting for an API response)
+    setTimeout(() => {
+      router.push("/sign-up/resident/complete-profile"); // Navigate after loading
+    }, 2000); // 2 seconds delay
   }
   return (
-    <Card className="w-full max-w-3xl border-none bg-transparent my-12">
+    <>
+      {isLoading && <HealthChainLoader loadingText="Securing Your Account..." />}
+      <Card className="w-full max-w-3xl border-none bg-transparent my-12">
       <CardHeader className="text-center mb-8">
         <CardTitle className="text-2xl lg:text-4xl font-bold"> 
           Secure Your Account
@@ -75,5 +84,6 @@ export default function SecureAccountPage() {
         </Button>
       </CardContent>
     </Card>
+    </>
   )
 }
