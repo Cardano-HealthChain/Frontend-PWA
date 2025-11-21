@@ -42,7 +42,7 @@ const AlertItem = ({ alert }: { alert: any }) => (
 
 export const YourAlerts = ({ alerts }: { alerts: any[] }) => {
     return (
-        <Card className="shadow-lg">
+        <Card className="shadow-lg border-none">
             <CardHeader className="border-b flex flex-row items-center justify-between">
                 <CardTitle className="text-xl font-bold">Your Alerts</CardTitle>
                 <Link href="/alerts" className="text-sm font-semibold text-primary/80 hover:text-primary">
