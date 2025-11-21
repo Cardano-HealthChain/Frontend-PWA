@@ -3,13 +3,14 @@ import { HealthStats } from "./HealthStats";
 import { ProfileCard } from "./ProfileCard";
 import { YourAlerts } from "./YourAlerts";
 import { LearnAndImprove } from "./LearnAndImprove";
+import { ProgressTracker } from "./ProgressTracker";
 import { Button } from "@/components/ui/button";
 import { Bell, FileText, Share2, Target, Zap } from "lucide-react";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
 
-const ActionButton = ({ icon: Icon, label }: { icon: any, label: string }) => (
-    <Button size="lg" variant="outline" className="w-full justify-start md:w-auto h-10 text-sm px-3 py-1 border-primary">
+const ActionButton = ({ icon: Icon, label, title }: { icon: any, label: string, title: string }) => (
+    <Button size="lg" variant="outline" className="w-full justify-start md:w-auto h-10 text-sm px-3 py-1 border-primary" title={title}>
         <Icon className="h-5 w-5 mr-2" /> {label}
     </Button>
 );
@@ -42,31 +43,40 @@ export const DashboardContent = ({
                         </p>
                     </div>
                     <div className="w-full flex flex-wrap gap-2 mt-6">
-                        <ActionButton icon={FileText} label="My Records" />
-                        <ActionButton icon={Share2} label="Share Access" />
-                        <ActionButton icon={Bell} label="Alerts" />
+                        <ActionButton icon={FileText} label="My Records" title="View your records" />
+                        <ActionButton icon={Share2} label="Share Access" title="Grant or revoke access" />
+                        <ActionButton icon={Bell} label="Alerts" title="View alerts" />
                         {/* <ActionButton icon={Target} label="Missions" /> */}
-                        <ActionButton icon={Zap} label="AI Assistant" />
+                        <ActionButton icon={Zap} label="AI Assistant" title="Ask AI assistant" />
                     </div>
                 </div>
                 <ProfileCard user={user} />
             </div>
 
-            <div className="grid grid-cols-1 gap-8 lg:grid-cols-3 mt-4">
+            <div className="flex flex-col lg:flex-row items-start mt-4">
                 {/* COLUMN 1 & 2: Health Info, Alerts, Missions (Expands on mobile) */}
-                <div className="lg:col-span-2 space-y-8">
+                <div className="space-y-8">
 
                     {/* 1. Health Stats / Profile (always active) */}
-                    <div className="">
-                        <div className="">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div className="lg:col-span-2">
                             <HealthStats user={user} hasRecords={hasActiveRecords} />
                         </div>
-
+                        {/* COLUMN 3: Permissions (Always visible, handles empty state internally) */}
+                        <div className="lg:col-span-1">
+                            <CurrentPermissions permissions={permissions} hasActiveRecords={hasActiveRecords} />
+                        </div>
+                        <div className="lg:col-span-2 mt-0">
+                            {hasActiveRecords && <YourAlerts alerts={alerts} />}
+                        </div>
+                        <div className="lg:col-span-1">
+                            <ProgressTracker />
+                        </div>
                     </div>
-
-                    {/* 2. Alerts Section (Visible if Active) */}
-                    {hasActiveRecords && <YourAlerts alerts={alerts} />}
-
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        {/* 2. Alerts Section (Visible if Active) */}
+                        
+                    </div>
                     {/* 3. Learn and Improve Section (Visible if Active) */}
                     {hasActiveRecords && <LearnAndImprove learnCards={learnCards} />}
 
@@ -80,10 +90,7 @@ export const DashboardContent = ({
                     )}
                 </div>
 
-                {/* COLUMN 3: Permissions (Always visible, handles empty state internally) */}
-                <div className="lg:col-span-1">
-                    <CurrentPermissions permissions={permissions} hasActiveRecords={hasActiveRecords} />
-                </div>
+
             </div>
         </div>
     );
