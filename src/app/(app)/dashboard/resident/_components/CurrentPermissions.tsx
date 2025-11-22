@@ -118,17 +118,17 @@ export const CurrentPermissions = ({ permissions, hasActiveRecords }: CurrentPer
                                                         <MoreVertical className="h-4 w-4" />
                                                     </Button>
                                                 </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end" className="bg-white">
+                                                <DropdownMenuContent align="end" className="bg-white border-none">
                                                     <DropdownMenuItem
                                                         onClick={() => handleRevokeAccess(permission)}
-                                                        className="cursor-pointer"
+                                                        className="cursor-pointer text-yellow-300 focus:text-yellow-300"
                                                     >
                                                         <XCircle className="mr-2 h-4 w-4" />
                                                         <span>Revoke Access</span>
                                                     </DropdownMenuItem>
                                                     <DropdownMenuItem
                                                         onClick={() => handleExtendAccess(permission)}
-                                                        className="cursor-pointer"
+                                                        className="cursor-pointer text-green-300 focus:text-green-300"
                                                     >
                                                         <Clock className="mr-2 h-4 w-4" />
                                                         <span>Extend Access</span>

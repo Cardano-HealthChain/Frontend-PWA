@@ -89,8 +89,6 @@ export const DashboardContent = ({
                         </Card>
                     )}
                 </div>
-
-
             </div>
         </div>
     );

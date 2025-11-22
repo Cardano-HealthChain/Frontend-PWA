@@ -5,7 +5,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 const LearnCard = ({ card }: { card: any }) => (
-    <Card className="shadow-sm p-4 h-full flex flex-col justify-between">
+    <Card className="shadow-sm p-4 h-full flex flex-col justify-between border-none">
         <div className="space-y-2">
             <h3 className="text-lg font-semibold">{card.title}</h3>
             <p className="text-sm text-muted-foreground">
@@ -28,14 +28,37 @@ const LearnCard = ({ card }: { card: any }) => (
 
 export const LearnAndImprove = ({ learnCards }: { learnCards: any[] }) => {
     return (
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+        <div className="flex flex-col items-center relative">
             {/* Missions/Modules */}
-            <div className="md:col-span-2 space-y-4">
+            <div className="flex justify-between items-center w-full mb-4">
                 <h2 className="text-xl font-bold">Learn & Improve</h2>
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                <Link
+                    href="/alerts"
+                    className="text-sm font-semibold text-primary hover:text-primary/80 underline ml-2"
+                >
+                    See More
+                </Link>
+            </div>
+
+            {/* Content Container with Overlay */}
+            <div className="relative w-full">
+                {/* Grid Content */}
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-3 blur-sm opacity-60 pointer-events-none">
                     {learnCards.map((card, i) => (
                         <LearnCard key={i} card={card} />
                     ))}
+                </div>
+
+                {/* Coming Soon Overlay */}
+                <div className="absolute inset-0 flex items-center justify-center bg-background/50 backdrop-blur-sm">
+                    <div className="text-center p-8 rounded-lg bg-card shadow-2xl border border-primary">
+                        <h3 className="text-xl md:text-3xl font-extrabold text-primary mb-2">
+                            Coming Soon
+                        </h3>
+                        <p className="text-muted-foreground text-sm md:text-base">
+                            This feature is under development
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>

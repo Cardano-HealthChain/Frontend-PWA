@@ -2,14 +2,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 
 const ImprovementItem = ({ label, percentage }: { label: string, percentage: number }) => (
-    <div className="py-2 border-b last:border-b-0">
+    <div className="py-3 px-2 border border-gray-100 rounded-lg">
         <div className="flex justify-between items-center">
             <p className="text-sm text-foreground/80">{label}</p>
             <span className="text-sm font-semibold text-primary">{percentage}%</span>
         </div>
         <div className="h-1.5 w-full bg-secondary rounded-full mt-1">
             <div
-                className="h-full bg-orange-400 rounded-full"
+                className="h-full bg-primary rounded-full"
                 style={{ width: `${percentage}%` }}
             ></div>
         </div>

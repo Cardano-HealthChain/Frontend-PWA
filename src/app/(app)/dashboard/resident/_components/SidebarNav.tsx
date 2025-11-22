@@ -7,10 +7,10 @@ import { cn } from "@/lib/utils";
 import { usePathname } from "next/navigation";
 
 const navItems = [
-    { href: "/dashboard", label: "Dashboard", icon: BarChart },
-    { href: "/records", label: "Records", icon: FileText },
-    { href: "/alerts", label: "Alerts", icon: Bell },
-    { href: "/permissions", label: "Permissions", icon: Lock },
+    { href: "/dashboard/resident", label: "Dashboard", icon: BarChart },
+    { href: "/dashboard/resident/records", label: "Records", icon: FileText },
+    { href: "/dashboard/resident/alerts", label: "Alerts", icon: Bell },
+    { href: "/dashboard/resident/permissions", label: "Permissions", icon: Lock },
 ];
 
 const secondaryItems = [
@@ -22,18 +22,21 @@ export const SidebarNav = ({ user }: { user: { name: string } }) => {
     const pathname = usePathname();
 
     const isActive = (href: string) => {
-        // Check if path starts with href, handling base dashboard path correctly
-        if (href === "/dashboard") {
-            return pathname.includes("/dashboard/resident");
+        // For the main dashboard page, only match exact path
+        if (href === "/dashboard/resident") {
+            return pathname === "/dashboard/resident";
         }
+
+        // For other pages, check if pathname starts with href
+        // This handles nested routes like /dashboard/resident/records/123
         return pathname.startsWith(href);
     };
 
     return (
-        <nav className="fixed left-0 top-0 hidden h-full w-[250px] flex-col justify-between bg-primary p-4 text-white shadow-lg md:flex">
+        <nav className="fixed left-0 top-0 h-full w-[250px] flex-col justify-between bg-primary p-4 text-white shadow-lg flex">
             {/* Top Section */}
             <div>
-                <Link href="/dashboard" className="mb-8 flex items-center justify-cente ">
+                <Link href="/dashboard/resident" className="mb-8 flex items-center justify-center">
                     <Image
                         src="/images/logo0.png"
                         alt="HealthChain Logo"
@@ -90,7 +93,7 @@ export const SidebarNav = ({ user }: { user: { name: string } }) => {
                         );
                     })}
                 </ul>
-                {/* User B / Footer */}
+                {/* User Badge / Footer */}
                 <div className="flex items-center space-x-3 rounded-lg bg-primary-foreground/10 p-3 text-sm">
                     <User className="h-5 w-5" />
                     <span className="font-medium">{user.name.split(' ')[0]}</span>
