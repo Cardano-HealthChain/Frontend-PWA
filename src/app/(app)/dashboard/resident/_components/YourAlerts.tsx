@@ -1,58 +1,143 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertTriangle, Info, Clock } from "lucide-react";
+import { Link as LinkIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 
-const AlertSeverityBadge = ({ severity }: { severity: string }) => {
-    let colorClass = "";
-    if (severity === 'High') {
-        colorClass = "bg-red-100 text-red-700";
-    } else if (severity === 'Medium') {
-        colorClass = "bg-yellow-100 text-yellow-700";
-    } else {
-        colorClass = "bg-green-100 text-green-700";
-    }
-
-    return (
-        <span className={cn("text-xs font-semibold px-2 py-0.5 rounded-full", colorClass)}>
-            {severity} Severity
-        </span>
-    );
+// Severity badge colors (small pills in header)
+const getSeverityColor = (severity: string) => {
+    if (severity === 'High') return "bg-red-200 text-red-800";
+    if (severity === 'Medium') return "bg-yellow-200 text-yellow-800";
+    return "bg-green-200 text-green-800";
 };
 
-const AlertItem = ({ alert }: { alert: any }) => (
-    <div className="flex items-center justify-between py-3 border-b last:border-b-0 hover:bg-secondary/30 transition-colors cursor-pointer px-1 -mx-1 rounded">
-        <div className="flex items-start space-x-3">
-            <AlertTriangle className="h-5 w-5 text-destructive mt-0.5 flex-shrink-0" />
-            <div>
-                <p className="text-sm font-medium">{alert.type}</p>
-                <div className="flex items-center gap-2 mt-1">
-                    <AlertSeverityBadge severity={alert.severity} />
-                    <span className="text-xs text-muted-foreground flex items-center gap-1">
-                        <Clock className="h-3 w-3" /> {alert.time}
-                    </span>
-                </div>
-            </div>
-        </div>
-        <Link href="/alerts" className="text-sm font-semibold text-primary/80 hover:text-primary whitespace-nowrap">
-            See More
-        </Link>
-    </div>
-);
+// Row background colors (full row coloring)
+const getRowColor = (severity: string) => {
+    if (severity === 'High') return "bg-red-50 hover:bg-red-100";
+    if (severity === 'Medium') return "bg-yellow-50 hover:bg-yellow-100";
+    return "bg-green-50 hover:bg-green-100";
+};
 
-export const YourAlerts = ({ alerts }: { alerts: any[] }) => {
+// Alert type
+type Alert = {
+    type: string;
+    description: string;
+    time: string;
+    severity: 'High' | 'Medium' | 'Low';
+};
+
+// Sample data
+const sampleAlerts: Alert[] = [
+    {
+        type: "Vaccination Overdue",
+        description: "Hepatitis B vaccination is overdue",
+        time: "2 hours ago",
+        severity: "High"
+    },
+    {
+        type: "New Clinic Update",
+        description: "New update from Sunrise Medical Centre",
+        time: "Yesterday",
+        severity: "Medium"
+    },
+    {
+        type: "Malaria Outbreak",
+        description: "Malaria outbreak reported in your region",
+        time: "3 days ago",
+        severity: "Low"
+    },
+    {
+        type: "Vaccination Overdue",
+        description: "Upcoming wellness screening available at Emerald Clinic",
+        time: "1 week ago",
+        severity: "High"
+    },
+    {
+        type: "New Clinic Update",
+        description: "Your blood test results have been added",
+        time: "1 week ago",
+        severity: "Medium"
+    },
+    {
+        type: "Malaria Outbreak",
+        description: "Missed Morphine Sulfate",
+        time: "28/02/2025",
+        severity: "Low"
+    }
+];
+
+export const YourAlerts = ({ alerts = sampleAlerts }: { alerts?: Alert[] }) => {
     return (
         <Card className="shadow-lg border-none">
-            <CardHeader className="border-b flex flex-row items-center justify-between">
-                <CardTitle className="text-xl font-bold">Your Alerts</CardTitle>
-                <Link href="/alerts" className="text-sm font-semibold text-primary/80 hover:text-primary">
-                    See More
-                </Link>
+            {/* Header with severity legend */}
+            <CardHeader className="border-b border-gray-100 pb-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <CardTitle className="text-xl font-bold">Your Alerts</CardTitle>
+                    <div className="flex items-center gap-2 flex-wrap">
+                        <div className="flex items-center gap-1">
+                            <span className="text-xs size-3 rounded-full bg-red-200"></span>
+                            <p className="text-sm">High Severity</p>
+                        </div>
+                        <div className="flex items-center gap-1">
+                            <span className="text-xs size-3 rounded-full bg-yellow-200"></span>
+                            <p className="text-sm">Medium Severity</p>
+                        </div>
+                        <div className="flex items-center gap-1">
+                            <span className="text-xs size-3 rounded-full bg-green-200"></span>
+                            <p className="text-sm">Low Severity</p>
+                        </div>
+                    </div>
+                    <Link
+                        href="/alerts"
+                        className="text-sm font-semibold text-primary hover:text-primary/80 underline ml-2"
+                    >
+                        See More
+                    </Link>
+                </div>
             </CardHeader>
-            <CardContent className="p-4 space-y-2">
-                {alerts.slice(0, 4).map((alert, i) => (
-                    <AlertItem key={i} alert={alert} />
-                ))}
+
+            {/* Table Content */}
+            <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                    <table className="w-full border-separate border-spacing-y-2">
+                        <tbody className="">
+                            {alerts.slice(0, 6).map((alert, i) => (
+                                <tr
+                                    key={i}
+                                    className={cn(
+                                        "transition-colors",
+                                        getRowColor(alert.severity)
+                                    )}
+                                >
+                                    {/* Icon Column */}
+                                    <td className="py-4 pl-6 pr-4 w-12">
+                                        <LinkIcon className="h-5 w-5 text-foreground/70" />
+                                    </td>
+
+                                    {/* Alert Type Column */}
+                                    <td className="py-4 px-2">
+                                        <p className="text-sm font-semibold text-foreground">
+                                            {alert.type}
+                                        </p>
+                                    </td>
+
+                                    {/* Description Column */} 
+                                    <td className="py-4 px-2">
+                                        <p className="text-sm font-semibold text-foreground">
+                                            {alert.description}
+                                        </p>
+                                    </td>
+
+                                    {/* Time Column */}
+                                    <td className="py-4 pl-6 pr-4 text-right">
+                                        <span className="text-sm text-foreground/70 whitespace-nowrap">
+                                            {alert.time}
+                                        </span>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             </CardContent>
         </Card>
     );

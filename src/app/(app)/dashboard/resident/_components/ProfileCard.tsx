@@ -5,7 +5,7 @@ import Link from "next/link";
 
 export const ProfileCard = ({ user }: { user: any }) => {
     return (
-        <Card className="bg-white py-6 px-6 max-w-xl flex flex-row items-center justify-evenly text-center border-none">
+        <Card className="bg-white py-6 px-6 max-w-2xl flex flex-col lg:flex-row items-center justify-evenly text-center border-none">
             <div className="rounded-full h-34 w-34 bg-primary/20 flex items-center justify-center">
                 <User className="h-24 w-24 text-primary" />
             </div>
