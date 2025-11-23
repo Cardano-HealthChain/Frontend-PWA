@@ -29,10 +29,10 @@ const mockDetail = {
 
 export const PermissionDetailPanel = ({ permission, onClose }: PermissionDetailPanelProps) => {
     return (
-        <div className="h-full bg-white border-l shadow-xl overflow-y-auto">
+        <div className="h-full bg-white border-none rounded-lg shadow-xl overflow-y-auto">
             <div className="p-6 space-y-6">
                 {/* Header */}
-                <div className="flex justify-between items-start pb-4 border-b">
+                <div className="flex justify-between items-start pb-4 border-b border-gray-200">
                     <h3 className="text-xl font-bold">{mockDetail.name}</h3>
                     <Button variant="ghost" size="icon" onClick={onClose}>
                         <X className="h-5 w-5" />
@@ -51,7 +51,7 @@ export const PermissionDetailPanel = ({ permission, onClose }: PermissionDetailP
 
                 {/* Access Scope */}
                 <div className="space-y-3">
-                    <h4 className="font-semibold border-b pb-2">Access Scope</h4>
+                    <h4 className="font-semibold border-b border-gray-200 pb-2">Access Scope</h4>
                     <div className="flex flex-wrap gap-2">
                         {mockDetail.accessScope.map((scope, i) => (
                             <span key={i} className="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full flex items-center gap-1">
@@ -64,7 +64,7 @@ export const PermissionDetailPanel = ({ permission, onClose }: PermissionDetailP
 
                 {/* Validity */}
                 <div className="space-y-3">
-                    <h4 className="font-semibold border-b pb-2">Validity</h4>
+                    <h4 className="font-semibold border-b border-gray-200 pb-2">Validity</h4>
                     <div className="grid grid-cols-2 gap-3 text-sm">
                         <div>
                             <span className="text-muted-foreground block">Start</span>
@@ -83,7 +83,7 @@ export const PermissionDetailPanel = ({ permission, onClose }: PermissionDetailP
 
                 {/* Audit Log */}
                 <div className="space-y-2">
-                    <h4 className="font-semibold border-b pb-2">Audit Log</h4>
+                    <h4 className="font-semibold border-b border-gray-200 pb-2">Audit Log</h4>
                     <div className="space-y-2">
                         {mockDetail.auditLog.map((log, i) => (
                             <div key={i} className="flex justify-between text-sm">
@@ -99,16 +99,16 @@ export const PermissionDetailPanel = ({ permission, onClose }: PermissionDetailP
 
                 {/* Actions */}
                 <div className="space-y-3">
-                    <h4 className="font-semibold border-b pb-2">Actions</h4>
-                    <div className="grid grid-cols-1 gap-2">
-                        <Button variant="destructive" className="w-full justify-start">
+                    <h4 className="font-semibold border-b border-gray-200 pb-2">Actions</h4>
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-2">
+                        <Button variant="destructive" className="w-full justify-start rounded-lg">
                             <Lock className="mr-2 h-4 w-4" /> Revoke
                         </Button>
-                        <Button variant="outline" className="w-full justify-start">
-                            <Lock className="mr-2 h-4 w-4" /> Limit Access
+                        <Button variant="outline" className="w-full justify-start rounded-lg border-primary lg:text-sm">
+                            <Lock className="mr- h-4 w-4" /> Limit Access
                         </Button>
-                        <Button variant="outline" className="w-full justify-start">
-                            <ArrowRight className="mr-2 h-4 w-4" /> Extend Access
+                        <Button variant="outline" className="w-full justify-start rounded-lg border-primary lg:text-sm">
+                            <ArrowRight className="mr- h-4 w-4" /> Extend Access
                         </Button>
                     </div>
                 </div>
@@ -127,7 +127,7 @@ const InfoRow = ({ label, value }: { label: string; value: string }) => (
 
 const Section = ({ title, content }: { title: string; content: string }) => (
     <div className="space-y-2">
-        <h4 className="font-semibold border-b pb-2">{title}</h4>
+        <h4 className="font-semibold border-b border-gray-200 pb-2">{title}</h4>
         <p className="text-sm text-muted-foreground">{content}</p>
     </div>
 );
