@@ -13,7 +13,7 @@ const mockPermissions = [
         status: "Active",
         validUntil: "Feb 24, 2025",
         lastAccessed: "Today, 10:14 AM",
-        icon: "🏥"
+        icon: ""
     },
     {
         name: "Emerald Hospital",
@@ -22,7 +22,7 @@ const mockPermissions = [
         status: "Expiring Soon",
         validUntil: "In 3 days",
         lastAccessed: "Yesterday, 3:20 PM",
-        icon: "🏥"
+        icon: ""
     },
     {
         name: "Maplewood Diagnostics Lab",
@@ -31,7 +31,7 @@ const mockPermissions = [
         status: "Active",
         validUntil: "Mar 10, 2025",
         lastAccessed: "Today, 08:12 AM",
-        icon: "🔬"
+        icon: ""
     },
     {
         name: "HavenPoint Clinic",
@@ -40,7 +40,7 @@ const mockPermissions = [
         status: "Expired",
         validUntil: "7 days ago",
         lastAccessed: "Jan 5",
-        icon: "🏥"
+        icon: ""
     },
     {
         name: "Crystal Eye Centre",
@@ -49,7 +49,7 @@ const mockPermissions = [
         status: "Active",
         validUntil: "Apr 1, 2025",
         lastAccessed: "Today, 6:55 AM",
-        icon: "👁️"
+        icon: ""
     },
     {
         name: "Royal Crest Diagnostics",
@@ -58,7 +58,7 @@ const mockPermissions = [
         status: "Revoked",
         validUntil: "Feb 24, 2025",
         lastAccessed: "Revoked On",
-        icon: "🔬"
+        icon: ""
     },
 ];
 
@@ -78,7 +78,7 @@ const getStatusColor = (status: string) => {
 const PermissionCard = ({ permission, onClick }: any) => (
     <Card
         className={cn(
-            "cursor-pointer transition-all hover:shadow-md hover:border-primary/50",
+            "cursor-pointer transition-all hover:shadow-md hover:border-primary/50 border-gray-200",
             permission.status === "Revoked" && "opacity-60"
         )}
         onClick={onClick}
@@ -111,8 +111,8 @@ const PermissionCard = ({ permission, onClick }: any) => (
 
 const InfoRow = ({ label, value }: { label: string; value: string }) => (
     <div className="flex justify-between">
-        <span className="text-muted-foreground">{label}</span>
-        <span className="font-medium text-right">{value}</span>
+        <span className="text-muted-foreground text-sm">{label}</span>
+        <span className="font-medium text-right text-sm">{value}</span>
     </div>
 );
 
@@ -135,6 +135,11 @@ export const PermissionGrid = ({ onPermissionSelect, searchQuery }: PermissionGr
                         key={i}
                         permission={permission}
                         onClick={() => onPermissionSelect(permission)}
+                        className={cn(
+                            "cursor-pointer transition-colors",
+                            i === 0 && "bg-primary text-primary-foreground hover:bg-primary/90",
+                            i !== 0 && "hover:bg-muted/50"
+                        )}
                     />
                 ))}
             </div>
