@@ -34,7 +34,7 @@ const summaryData = [
 ];
 
 const SummaryCard = ({ title, count, subtitle, color, icon: Icon }: any) => (
-    <Card className={cn("shadow-sm", color)}>
+    <Card className={cn("shadow-sm border-none", color)}>
         <CardContent className="p-4 space-y-2">
             <div className="flex items-start gap-2">
                 <div className="h-8 w-8 rounded bg-white/50 flex items-center justify-center">

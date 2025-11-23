@@ -23,7 +23,7 @@ type RecordsTableProps = {
 export const RecordsTable = ({ onRecordSelect }: RecordsTableProps) => {
     const [searchQuery, setSearchQuery] = useState("");
 
-    const filteredRecords = mockRecords.filter(record => 
+    const filteredRecords = mockRecords.filter(record =>
         record.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         record.clinic.toLowerCase().includes(searchQuery.toLowerCase())
     );
@@ -32,7 +32,7 @@ export const RecordsTable = ({ onRecordSelect }: RecordsTableProps) => {
         <div>
             {/* Search Bar */}
             <div className="mb-6">
-                <div className="relative max-w-md">
+                <div className="relative max-w-md border-primary">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                         type="search"
@@ -43,16 +43,16 @@ export const RecordsTable = ({ onRecordSelect }: RecordsTableProps) => {
                     />
                 </div>
             </div>
-            <div className="flex justify-between items-center mb-4">
-                <h2 className="text-2xl font-bold">Your Health Records</h2>
-                <Button variant="link" className="text-primary">See More</Button>
-            </div>
 
-            <Card className="shadow-lg">
-                <CardContent className="p-0">
+            <Card className="shadow-lg border-none">
+                <CardContent className="p-4">
+                    <div className="flex justify-between items-center mb-4">
+                        <h2 className="text-2xl font-bold">Your Health Records</h2>
+                        <Button variant="link" className="text-primary">See More</Button>
+                    </div>
                     <div className="overflow-x-auto">
-                        <Table>
-                            <TableHeader>
+                        <Table className="border-separate border-spacing-y-2">
+                            <TableHeader className="border border-gray-100 rounded-lg ">
                                 <TableRow className="bg-muted/50">
                                     <TableHead className="font-semibold">DATE</TableHead>
                                     <TableHead className="font-semibold">TITLE</TableHead>
@@ -61,7 +61,7 @@ export const RecordsTable = ({ onRecordSelect }: RecordsTableProps) => {
                                     <TableHead className="font-semibold">STATUS</TableHead>
                                 </TableRow>
                             </TableHeader>
-                            <TableBody>
+                            <TableBody className="border border-gray-100 rounded-lg">
                                 {filteredRecords.map((record, i) => (
                                     <TableRow
                                         key={i}

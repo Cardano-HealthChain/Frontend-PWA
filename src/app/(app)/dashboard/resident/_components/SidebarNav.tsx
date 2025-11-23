@@ -14,8 +14,8 @@ const navItems = [
 ];
 
 const secondaryItems = [
-    { href: "/settings", label: "Settings", icon: Settings },
-    { href: "/logout", label: "Log Out", icon: LogOut },
+    { href: "/dashboard/resident/settings", label: "Settings", icon: Settings },
+    { href: "/dashboard/resident/logout", label: "Log Out", icon: LogOut },
 ];
 
 export const SidebarNav = ({ user }: { user: { name: string } }) => {
