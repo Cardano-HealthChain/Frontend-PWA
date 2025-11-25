@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, UsersRound } from "lucide-react";
+import { ArrowRight, UsersRound, TestTubeDiagonal, Ribbon, ClipboardPlus, Pill, Microscope } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const summaryData = [
@@ -12,7 +12,8 @@ const summaryData = [
         status: "Status",
         timeline: "3 weeks ago",
         buttonLabel: "View Lab Tests",
-        color: "bg-green-100 text-green-900"
+        color: "bg-green-100 text-green-900",
+        icon: TestTubeDiagonal
     },
     {
         title: "Vaccinations",
@@ -22,7 +23,8 @@ const summaryData = [
         status: "Due in",
         timeline: "2 months",
         buttonLabel: "View Vaccinations",
-        color: "bg-blue-100 text-blue-900"
+        color: "bg-blue-100 text-blue-900",
+        icon: Ribbon
     },
     {
         title: "Clinic Visits",
@@ -32,7 +34,8 @@ const summaryData = [
         status: "Sunrise Clinic",
         timeline: "20 May 2025",
         buttonLabel: "View Visits",
-        color: "bg-purple-100 text-purple-900"
+        color: "bg-purple-100 text-purple-900",
+        icon: ClipboardPlus
     },
     {
         title: "Medications",
@@ -42,7 +45,8 @@ const summaryData = [
         status: "Status",
         timeline: "5 days ago",
         buttonLabel: "View Medications",
-        color: "bg-red-100 text-red-900"
+        color: "bg-red-100 text-red-900",
+        icon: Pill
     },
     {
         title: "Imaging",
@@ -52,16 +56,17 @@ const summaryData = [
         status: "Latest",
         timeline: "Chest X-ray (3 months ago)",
         buttonLabel: "View Imaging",
-        color: "bg-pink-100 text-pink-900"
+        color: "bg-pink-100 text-pink-900",
+        icon: Microscope
     }
 ];
 
-const SummaryCard = ({ title, count, subtitle, details, buttonLabel, color, status, timeline }: any) => (
+const SummaryCard = ({ title, count, subtitle, details, buttonLabel, color, status, timeline, icon: Icon }: any) => (
     <Card className={cn("shadow-sm border-none", color)}>
         <CardContent className="p-4 space-y-3">
             <div className="flex items-start gap-2">
                 <div className="h-8 w-8 rounded bg-white/50 flex items-center justify-center">
-                    <UsersRound className="h-5 w-5" />
+                    <Icon className="h-5 w-5" />
                 </div>
                 <p className="text-xs font-medium opacity-90 mt-3">{title}</p>
             </div>
