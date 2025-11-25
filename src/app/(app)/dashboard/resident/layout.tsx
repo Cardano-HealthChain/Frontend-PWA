@@ -5,9 +5,16 @@ import { useRouter, usePathname } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { HealthChainLoader } from "@/components/ui/HealthChainLoader";
 import { SidebarNav } from "./_components/SidebarNav";
-import { Search, Bell, ChevronDown, Menu, X } from "lucide-react";
+import { Search, Bell, ChevronDown, Menu, X, User, Settings, LogOut } from "lucide-react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 // Mock user data - You can replace this with actual user data from your store
 const MOCK_USER = {
@@ -127,7 +134,7 @@ export default function AppLayout({
           {/* Mobile Logo - Centered on mobile */}
           <div className="md:hidden flex-1 flex justify-center">
             <Image
-              src="/images/logo0.png"
+              src="/images/logo.png"
               alt="HealthChain"
               width={120}
               height={40}
@@ -149,21 +156,45 @@ export default function AppLayout({
               <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full"></span>
             </Button>
 
-            {/* User Profile - Simplified on mobile */}
-            <div className="h-10 rounded-full bg-primary/20 flex items-center gap-2 md:gap-3 px-2 cursor-pointer hover:bg-primary/30 transition-colors">
-              <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
-                <Image
-                  src="/images/avatar.png"
-                  alt="User Avatar"
-                  width={32}
-                  height={32}
-                  className="rounded-full"
-                  onError={(e) => (e.currentTarget.src = "https://placehold.co/32x32/6002ee/ffffff?text=U")}
-                />
-              </div>
-              <span className="hidden md:inline text-lg font-medium text-primary">|</span>
-              <ChevronDown className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
-            </div>
+            {/* User Profile Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <div className="h-10 rounded-full bg-primary/20 flex items-center gap-2 md:gap-3 px-2 cursor-pointer hover:bg-primary/30 transition-colors">
+                  <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                    <Image
+                      src="/images/avatar.png"
+                      alt="User Avatar"
+                      width={32}
+                      height={32}
+                      className="rounded-full"
+                      onError={(e) => (e.currentTarget.src = "https://placehold.co/32x32/6002ee/ffffff?text=U")}
+                    />
+                  </div>
+                  <span className="hidden md:inline text-lg font-medium text-primary">|</span>
+                  <ChevronDown className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
+                </div>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56 bg-white border-none">
+                <div className="px-2 py-1.5">
+                  <p className="text-sm font-medium">{MOCK_USER.name}</p>
+                  <p className="text-xs text-muted-foreground">DID: {MOCK_USER.did}</p>
+                </div>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="cursor-pointer">
+                  <User className="mr-2 h-4 w-4" />
+                  <span>Profile</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer">
+                  <Settings className="mr-2 h-4 w-4" />
+                  <span>Settings</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="cursor-pointer text-destructive focus:text-destructive">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Log Out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </header>
 

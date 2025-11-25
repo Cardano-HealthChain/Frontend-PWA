@@ -8,7 +8,10 @@ import { SettingsNav } from "./_components/SettingsNav";
 import { ProfileSection } from "./_components/ProfileSection";
 import { SecuritySection } from "./_components/SecuritySection";
 import { NotificationSection } from "./_components/NotificationSection";
-import { User, Lock, Shield, Bell, Share2, Settings, LogOut, Info } from "lucide-react";
+import { PrivacySection } from "./_components/PrivacySection";
+import { PermissionsSharingSection } from "./_components/PermissionSharingSection"; 
+import { AppPreferencesSection } from "./_components/AppPreferenceSection";
+import { AboutSection } from "./_components/AboutSection";
 
 
 // Map component IDs to the imported components
@@ -16,12 +19,11 @@ const settingsComponents: { [key: string]: React.FC } = {
     'profile': ProfileSection,
     'security': SecuritySection,
     'notifications': NotificationSection,
-    // Placeholder components for sections not yet implemented
-    'privacy': () => <div className="p-6 text-muted-foreground">Privacy Controls content coming soon.</div>,
-    'permissions': () => <div className="p-6 text-muted-foreground">Permissions & Sharing quick links coming soon.</div>,
-    'app': () => <div className="p-6 text-muted-foreground">App Preferences content coming soon.</div>,
-    'about': () => <div className="p-6 text-muted-foreground">About HealthChain info coming soon.</div>,
-    'logout': () => <div className="p-6 text-muted-foreground">Logout confirmation coming soon.</div>,
+    'privacy': PrivacySection, // Mapped
+    'permissions': PermissionsSharingSection, // Mapped
+    'app': AppPreferencesSection, // Mapped
+    'about': AboutSection, // Mapped
+    'logout': () => <div className="p-6 text-muted-foreground">Clicking Logout will clear your local token and redirect you to the login screen.</div>,
 };
 
 export default function SettingsPage() {
