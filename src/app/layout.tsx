@@ -2,6 +2,8 @@ import type { Metadata } from "next"
 import { Urbanist } from "next/font/google" // Import Urbanist
 import "./globals.css"
 import { cn } from "@/lib/utils" // Make sure you have this util from shadcn
+import { Toaster } from "@/components/ui/toaster"
+// import { BackendWarmup } from "@/components/backendWarmup.tsx
 
 // Setup the font with weights and a CSS variable
 const urbanist = Urbanist({
@@ -29,6 +31,7 @@ export default function RootLayout({
         )}
       >
         {children}
+        <Toaster />
       </body>
     </html>
   )

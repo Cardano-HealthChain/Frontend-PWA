@@ -11,7 +11,7 @@ const withPWAConfig = withPWA({
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   // Add turbopack config here
-  // turbopack: {}
+  turbopack: {}
 };
 
-export default withPWAConfig(nextConfig);
+export default withPWAConfig(nextConfig as any);
