@@ -1,69 +1,356 @@
-import axios, { AxiosInstance } from 'axios';
+import axios, { AxiosInstance, AxiosError } from 'axios';
 
-// 1. Get the base API URL from environment variables
+// Base API URL
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-// 2. Create an Axios instance with base configuration
+// Create Axios instance
 const apiClient: AxiosInstance = axios.create({
-    baseURL: API_URL,
-    headers: {
-        'Content-Type': 'application/json',
-    },
-    // You can set timeouts here for slow connections
-    timeout: 10000,
+  baseURL: API_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  timeout: 30000,
 });
 
-// Optional: Add an interceptor to inject the JWT token for every request
-// This is essential for protecting your dashboard routes!
+// Request interceptor - Add JWT token
 apiClient.interceptors.request.use(
-    (config) => {
-        // Check if the request needs authentication (e.g., if it's not a /login or /signup call)
-        const token = localStorage.getItem('auth_token'); // Or use a secure cookie/state hook
-
-        if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
-        }
-        return config;
-    },
-    (error) => {
-        return Promise.reject(error);
+  (config) => {
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('auth_token');
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
+    return config;
+  },
+  (error) => Promise.reject(error)
 );
 
+// Response interceptor - Handle errors
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error: AxiosError) => {
+    if (error.response?.status === 401) {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('auth_token');
+        window.location.href = '/login';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
 
-// 3. Define specific, typed functions for your application (Examples for Signup)
-// This abstracts the URL path away from your components.
+// ============================================================================
+// TYPE DEFINITIONS
+// ============================================================================
+
+export interface SignupRequest {
+  email: string;
+  password: string;
+  firstname: string;
+  lastname: string;
+}
+
+export interface SignupResponse {
+  user_email: string;
+  token: string;
+}
+
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface PersonalDetailsRequest {
+  firstname: string;
+  lastname: string;
+  dob: string;
+  gender: string;
+}
+
+export interface HealthInfoRequest {
+  blood_type: string;
+  genotype: string;
+  known_allergies: string;
+  pre_existing_conditions: string;
+}
+
+export interface EmergencyContactRequest {
+  name: string;
+  phone_number: string;
+  relationship: string;
+}
+
+export interface LocationRequest {
+  country: string;
+  state: string;
+}
+
+export interface MedicalRecord {
+  record_id: string;
+  record_type: string;
+  record_data: string;
+  patientName: string;
+  hash_local: string;
+  blockchainTransactionID: string;
+  verified: boolean;
+  uploaded_by: string;
+  created_at: string;
+}
+
+export interface Permission {
+  permissions_id: string;
+  clinic_name: string;
+  clinic_id: string;
+  access_type: 'READ' | 'WRITE' | 'READANDWRITE';
+  granted: boolean;
+  revoked: boolean;
+  granted_at: string;
+  revoked_at: string | null;
+}
+
+export interface Notification {
+  notification_id: string;
+  title: string;
+  message: string;
+  notification_level: string;
+  notification_type: string;
+  sent_at: string;
+}
+
+export interface AuditLog {
+  actor_type: string;
+  actor_reference: string;
+  action_performed: string;
+  details: string;
+}
+
+// ============================================================================
+// AUTHENTICATION ENDPOINTS
+// ============================================================================
 
 /**
- * Saves the user's PIN and completes the security phase.
- * Corresponds to your /signup/secure page logic.
+ * Register a new user account
  */
-export const savePin = (data: { email: string; pin: string; enableBiometrics: boolean }) => {
-    return apiClient.post('/api/v1/auth/save-pin', data);
+export const signup = async (data: SignupRequest) => {
+  return apiClient.post<SignupResponse>('/api/v1/resident/signup', data);
 };
 
 /**
- * Registers a new Resident user.
- * Assumes the backend handles DID generation after this call.
+ * Login user and get JWT token
  */
-export const registerResident = (data: any) => {
-    return apiClient.post('/api/v1/auth/register-resident', data);
+export const login = async (data: LoginRequest) => {
+  return apiClient.post<string>('/auth/login', data);
+};
+
+// ============================================================================
+// PROFILE ENDPOINTS
+// ============================================================================
+
+/**
+ * Get user profile completion percentage
+ */
+export const getProfileCompletion = async () => {
+  return apiClient.get<{ completion: number }>('/api/v1/resident/profile_completion');
 };
 
 /**
- * Submits the final Clinic registration details and documents.
+ * Update personal details
  */
-export const submitClinicRegistration = (data: any) => {
-    return apiClient.post('/api/v1/clinic/submit-registration', data);
+export const updatePersonalDetails = async (data: PersonalDetailsRequest) => {
+  return apiClient.post('/api/v1/resident/profile/personal_details', data);
 };
 
 /**
- * Authenticates the user and retrieves a JWT token and user role.
+ * Update health information
  */
-export const loginUser = (data: { email: string; password: string }) => {
-    return apiClient.post('/api/v1/auth/login', data);
+export const updateHealthInfo = async (data: HealthInfoRequest) => {
+  return apiClient.post('/api/v1/resident/profile/basic_health_information', data);
 };
 
+/**
+ * Update emergency contact
+ */
+export const updateEmergencyContact = async (data: EmergencyContactRequest) => {
+  return apiClient.post('/api/v1/resident/profile/emergency_contact', data);
+};
 
-// You can export the instance if you need a raw call, but prefer the wrapper functions
+/**
+ * Update location
+ */
+export const updateLocation = async (data: LocationRequest) => {
+  return apiClient.post('/api/v1/resident/profile/location', data);
+};
+
+// ============================================================================
+// MEDICAL RECORDS ENDPOINTS
+// ============================================================================
+
+/**
+ * Get all medical records (paginated)
+ */
+export const getMedicalRecords = async (page: number = 0) => {
+  return apiClient.get<MedicalRecord[]>(`/api/v1/resident/records?page=${page}`);
+};
+
+/**
+ * Get verified medical records only (paginated)
+ */
+export const getVerifiedRecords = async (page: number = 0) => {
+  return apiClient.get<MedicalRecord[]>(`/api/v1/resident/verified_records?page=${page}`);
+};
+
+/**
+ * Get single medical record by ID
+ */
+export const getMedicalRecord = async (recordId: string) => {
+  return apiClient.get<MedicalRecord>(`/api/v1/resident/record?record_id=${recordId}`);
+};
+
+/**
+ * Get filtered medical records by category
+ */
+export const getFilteredRecords = async (page: number = 0, category: string) => {
+  return apiClient.get<MedicalRecord[]>(`/api/v1/resident/records/filtered?page=${page}&category=${category}`);
+};
+
+/**
+ * Get filtered verified records by category
+ */
+export const getFilteredVerifiedRecords = async (page: number = 0, category: string) => {
+  return apiClient.get<MedicalRecord[]>(`/api/v1/resident/verified_records/filtered?page=${page}&category=${category}`);
+};
+
+/**
+ * Search medical records by keyword
+ */
+export const searchMedicalRecords = async (searchKeyword: string, page: number = 0) => {
+  return apiClient.get<MedicalRecord[]>(`/api/v1/resident/records/search?search_keyword=${searchKeyword}&page=${page}`);
+};
+
+// ============================================================================
+// PERMISSIONS ENDPOINTS
+// ============================================================================
+
+/**
+ * Get clinic permissions (paginated)
+ */
+export const getPermissions = async (page: number = 0) => {
+  return apiClient.get<Permission[]>(`/api/v1/resident/permissions?page=${page}`);
+};
+
+/**
+ * Grant permission to a clinic
+ */
+export const grantPermission = async (clinicId: string, permissionAccess: 'READ' | 'WRITE' | 'READANDWRITE') => {
+  return apiClient.post(`/api/v1/resident/permissions/grant?clinicId=${clinicId}&permissionAccess=${permissionAccess}`);
+};
+
+/**
+ * Revoke permission from a clinic
+ */
+export const revokePermission = async (clinicId: string) => {
+  return apiClient.post(`/api/v1/resident/permissions/revoke?clinicId=${clinicId}`);
+};
+
+// ============================================================================
+// NOTIFICATIONS ENDPOINTS
+// ============================================================================
+
+/**
+ * Get notifications (paginated)
+ */
+export const getNotifications = async (page: number = 0) => {
+  return apiClient.get<Notification[]>(`/api/v1/resident/notifications?page=${page}`);
+};
+
+/**
+ * Mark notification as read
+ */
+export const markNotificationAsRead = async (notificationId: string) => {
+  return apiClient.post(`/api/v1/resident/notifications/read?notificationId=${notificationId}`);
+};
+
+// ============================================================================
+// DASHBOARD/STATISTICS ENDPOINTS
+// ============================================================================
+
+/**
+ * Get count of verified records
+ */
+export const getVerifiedRecordsCount = async () => {
+  return apiClient.post<number>('/api/v1/resident/dashboard/records/verified_count');
+};
+
+/**
+ * Get count of clinics visited
+ */
+export const getClinicsVisitedCount = async () => {
+  return apiClient.get<number>('/api/v1/resident/clinics_visited');
+};
+
+// ============================================================================
+// ACCOUNT MANAGEMENT ENDPOINTS
+// ============================================================================
+
+/**
+ * Delete user account permanently
+ */
+export const deleteAccount = async () => {
+  return apiClient.post('/api/v1/resident/delete');
+};
+
+// ============================================================================
+// AUDIT ENDPOINTS
+// ============================================================================
+
+/**
+ * Get audit logs (paginated)
+ */
+export const getAuditLogs = async (page: number = 0) => {
+  return apiClient.get<AuditLog>(`/api/v1/resident/audit?page=${page}`);
+};
+
+// ============================================================================
+// UTILITY FUNCTIONS
+// ============================================================================
+
+/**
+ * Store auth token
+ */
+export const setAuthToken = (token: string) => {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('auth_token', token);
+  }
+};
+
+/**
+ * Get auth token
+ */
+export const getAuthToken = () => {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('auth_token');
+  }
+  return null;
+};
+
+/**
+ * Remove auth token
+ */
+export const removeAuthToken = () => {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('auth_token');
+  }
+};
+
+/**
+ * Logout user
+ */
+export const logout = () => {
+  removeAuthToken();
+  if (typeof window !== 'undefined') {
+    window.location.href = '/login';
+  }
+};
+
 export default apiClient;
