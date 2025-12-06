@@ -1,7 +1,7 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
 
 // Base API URL
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://backend-apis-production-5e22.up.railway.app';
 
 // Create Axios instance
 const apiClient: AxiosInstance = axios.create({
@@ -9,7 +9,7 @@ const apiClient: AxiosInstance = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 30000,
+  timeout: 30000, // Increased to 30 seconds
 });
 
 // Request interceptor - Add JWT token
@@ -125,6 +125,37 @@ export interface AuditLog {
   details: string;
 }
 
+export interface ProfileData {
+  email: string;
+  first_name: string;
+  last_name: string;
+  phone_number: string;
+  dob: string;
+  gender: string;
+  address: string;
+  blood_type: string;
+  genotype: string;
+  known_allergies: string;
+  pre_existing_conditions: string;
+  emergency_contact_name: string;
+  emergency_contact_phone: string;
+  emergency_contact_rel: string;
+  nationality: string;
+  state_of_origin: string;
+  created_at: string;
+  verified: boolean;
+  role: string;
+}
+
+export interface DashboardData {
+  profile: ProfileData;
+  records: MedicalRecord[];
+  notifications: Notification[];
+  permissions: Permission[];
+  verifiedRecordsCount: number;
+  clinicsVisitedCount: number;
+}
+
 // ============================================================================
 // AUTHENTICATION ENDPOINTS
 // ============================================================================
@@ -152,6 +183,13 @@ export const login = async (data: LoginRequest) => {
  */
 export const getProfileCompletion = async () => {
   return apiClient.get<{ completion: number }>('/api/v1/resident/profile_completion');
+};
+
+/**
+ * Get complete user profile data
+ */
+export const getProfileData = async () => {
+  return apiClient.get<ProfileData>('/api/v1/resident/profile_data');
 };
 
 /**
@@ -309,6 +347,84 @@ export const deleteAccount = async () => {
  */
 export const getAuditLogs = async (page: number = 0) => {
   return apiClient.get<AuditLog>(`/api/v1/resident/audit?page=${page}`);
+};
+
+// ============================================================================
+// DASHBOARD - FETCH ALL DATA AT ONCE
+// ============================================================================
+
+/**
+ * Fetch all dashboard data at once using Promise.all
+ * This is more efficient than making multiple separate requests
+ */
+export const loadDashboard = async (): Promise<DashboardData> => {
+  const [
+    profileRes,
+    recordsRes,
+    notificationsRes,
+    permissionsRes,
+    verifiedCountRes,
+    clinicsCountRes,
+  ] = await Promise.all([
+    getProfileData(),
+    getMedicalRecords(0),
+    getNotifications(0),
+    getPermissions(0),
+    getVerifiedRecordsCount(),
+    getClinicsVisitedCount(),
+  ]);
+
+  return {
+    profile: profileRes.data,
+    records: recordsRes.data,
+    notifications: notificationsRes.data,
+    permissions: permissionsRes.data,
+    verifiedRecordsCount: verifiedCountRes.data,
+    clinicsVisitedCount: clinicsCountRes.data,
+  };
+};
+
+/**
+ * Fetch dashboard data with error handling
+ * Returns partial data if some requests fail
+ */
+export const loadDashboardSafe = async (): Promise<Partial<DashboardData>> => {
+  try {
+    const results = await Promise.allSettled([
+      getProfileData(),
+      getMedicalRecords(0),
+      getNotifications(0),
+      getPermissions(0),
+      getVerifiedRecordsCount(),
+      getClinicsVisitedCount(),
+    ]);
+
+    const dashboardData: Partial<DashboardData> = {};
+
+    if (results[0].status === 'fulfilled') {
+      dashboardData.profile = results[0].value.data;
+    }
+    if (results[1].status === 'fulfilled') {
+      dashboardData.records = results[1].value.data;
+    }
+    if (results[2].status === 'fulfilled') {
+      dashboardData.notifications = results[2].value.data;
+    }
+    if (results[3].status === 'fulfilled') {
+      dashboardData.permissions = results[3].value.data;
+    }
+    if (results[4].status === 'fulfilled') {
+      dashboardData.verifiedRecordsCount = results[4].value.data;
+    }
+    if (results[5].status === 'fulfilled') {
+      dashboardData.clinicsVisitedCount = results[5].value.data;
+    }
+
+    return dashboardData;
+  } catch (error) {
+    console.error('Error loading dashboard:', error);
+    throw error;
+  }
 };
 
 // ============================================================================
