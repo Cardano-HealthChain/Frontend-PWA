@@ -4,13 +4,21 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import Image from "next/image"
 
 // Helper component for a consistent card layout
+interface StatCardProps {
+  value: string
+  description: string
+  iconSrc: string
+  iconAlt: string
+  size?: "small" | "large"
+}
+
 const StatCard = ({
   value,
   description,
   iconSrc,
   iconAlt,
   size = "small",
-}) => {
+}: StatCardProps) => {
   const isLarge = size === "large"
   const iconSize = isLarge ? 80 : 56
   const valueClass = isLarge ? "text-3xl md:text-4xl" : "text-2xl md:text-3xl"
