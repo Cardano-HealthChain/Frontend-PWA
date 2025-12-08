@@ -24,11 +24,11 @@ const TextContent = ({
     children,
 }: {
     title: string;
-    subtitle: string;
+    subtitle?: string;
     children: React.ReactNode;
 }) => (
     <div className="flex flex-col gap-4">
-        <p className="font-semibold text-primary">{subtitle}</p>
+        {subtitle && <p className="font-semibold text-primary">{subtitle}</p>}
         <h2 className="text-3xl lg:text-4xl font-bold text-primary tracking-tight">{title}</h2>
         <div className="space-y-4 text-muted-foreground text-md">{children}</div>
     </div>
