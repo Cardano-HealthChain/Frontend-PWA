@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Shield, Lock, Trash2, ArrowRight, MoreVertical, XCircle, Clock } from "lucide-react";
@@ -6,107 +8,149 @@ import {
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import Image from "next/image";
+} from "@/components/ui/dropdown-menu";
+import Link from "next/link";
+import { revokePermission } from "@/lib/api";
+import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
 
-// Define the Permission type
 type Permission = {
     icon?: string;
     clinic: string;
     role: string;
     expires: string;
+    active?: boolean;
+    clinic_id?: string;
 };
 
 type CurrentPermissionsProps = {
     permissions: Permission[];
     hasActiveRecords: boolean;
+    onRefresh?: () => void;
 };
 
-export const CurrentPermissions = ({ permissions, hasActiveRecords }: CurrentPermissionsProps) => {
+export const CurrentPermissions = ({
+    permissions,
+    hasActiveRecords,
+    onRefresh
+}: CurrentPermissionsProps) => {
     const hasPermissions = permissions.length > 0;
+    const { toast } = useToast();
+    const [loading, setLoading] = useState<string | null>(null);
 
-    // Handler functions
-    const handleRevokeAccess = (permission: Permission) => {
-        console.log("Revoke access for:", permission.clinic);
-        // Add your revoke logic here
+    const handleRevokeAccess = async (permission: Permission) => {
+        if (!permission.clinic_id) {
+            toast({
+                title: "Error",
+                description: "Cannot revoke: Clinic ID not found",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        try {
+            setLoading(permission.clinic_id);
+            await revokePermission(permission.clinic_id);
+
+            toast({
+                title: "Access Revoked",
+                description: `Access to ${permission.clinic} has been revoked.`,
+            });
+
+            // Refresh data
+            if (onRefresh) {
+                onRefresh();
+            }
+        } catch (error: any) {
+            console.error("Revoke error:", error);
+            toast({
+                title: "Error",
+                description: error.response?.data?.message || "Failed to revoke access",
+                variant: "destructive",
+            });
+        } finally {
+            setLoading(null);
+        }
     };
 
     const handleExtendAccess = (permission: Permission) => {
-        console.log("Extend access for:", permission.clinic);
-        // Add your extend logic here
+        toast({
+            title: "Coming Soon",
+            description: "Extend access feature will be available soon.",
+        });
     };
 
     const handleDelete = (permission: Permission) => {
-        console.log("Delete:", permission.clinic);
-        // Add your delete logic here
+        toast({
+            title: "Confirm Delete",
+            description: "This will permanently delete this permission record.",
+        });
     };
 
     return (
         <Card className="shadow-lg h-full border-none">
             <CardHeader className="border-b border-gray-100 py-1">
-                <CardTitle className="text-lg font-bold text-primary">Active Permissions</CardTitle>
+                <CardTitle className="text-lg font-bold text-primary">
+                    Active Permissions
+                </CardTitle>
             </CardHeader>
             <CardContent className="px-4 py-2">
                 {hasPermissions ? (
-                    // ACTIVE STATE
                     <div className="space-y-2">
                         <table className="w-full">
                             <thead>
-                                <tr className="">
-                                    {/* <th className="text-left py-3 px-4 font-medium text-sm text-muted-foreground">Icon</th> */}
-                                    <th className="text-left py-3 px-4 font-medium text-sm text-muted-foreground">Clinic</th>
-                                    <th className="text-left py-3 px-4 font-medium text-sm text-muted-foreground">Role</th>
-                                    <th className="text-left py-3 px-4 font-medium text-sm text-muted-foreground">Duration</th>
-                                    <th className="text-right py-3 px-4 font-medium text-sm text-muted-foreground">Actions</th>
+                                <tr>
+                                    <th className="text-left py-3 px-4 font-medium text-sm text-muted-foreground">
+                                        Clinic
+                                    </th>
+                                    <th className="text-left py-3 px-4 font-medium text-sm text-muted-foreground">
+                                        Role
+                                    </th>
+                                    <th className="text-left py-3 px-4 font-medium text-sm text-muted-foreground">
+                                        Duration
+                                    </th>
+                                    <th className="text-right py-3 px-4 font-medium text-sm text-muted-foreground">
+                                        Actions
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody className="overflow-auto">
                                 {permissions.slice(0, 3).map((permission, index) => (
                                     <tr key={index} className="hover:bg-muted/50">
-                                        {/* Icon Column */}
-                                        {/* <td className="py-3 px-4">
-                                            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                                                {permission.icon ? (
-                                                    <Image
-                                                        src={permission.icon}
-                                                        alt={permission.clinic}
-                                                        width={40}
-                                                        height={40}
-                                                        className="rounded-full object-cover"
-                                                    />
-                                                ) : (
-                                                    <Shield className="h-5 w-5 text-primary/70" />
-                                                )}
-                                            </div>
-                                        </td> */}
-
-                                        {/* Clinic Column */}
                                         <td className="py-3 px-1">
-                                            <p className="text-xs whitespace-nowrap font-medium">{permission.clinic}</p>
+                                            <p className="text-xs whitespace-nowrap font-medium">
+                                                {permission.clinic}
+                                            </p>
                                         </td>
-
-                                        {/* Role Column */}
                                         <td className="py-3 px-1">
                                             <span
                                                 className="text-xs rounded-full px-2 py-0.5 inline-block font-medium"
                                                 style={{
-                                                    backgroundColor: permission.role === 'Read/Write' ? '#ffdfdb' : '#e0f7fa',
-                                                    color: permission.role === 'Read/Write' ? '#d32f2f' : '#00bcd4',
-                                                    borderColor: permission.role === 'Read/Write' ? '#d32f2f' : '#005cd4ff',
+                                                    backgroundColor:
+                                                        permission.role === "Read/Write"
+                                                            ? "#ffdfdb"
+                                                            : permission.role === "Write Only"
+                                                                ? "#fff3cd"
+                                                                : "#e0f7fa",
+                                                    color:
+                                                        permission.role === "Read/Write"
+                                                            ? "#d32f2f"
+                                                            : permission.role === "Write Only"
+                                                                ? "#856404"
+                                                                : "#00bcd4",
                                                 }}
                                             >
                                                 {permission.role}
                                             </span>
                                         </td>
-
-                                        {/* Duration Column */}
                                         <td className="py-3 px-1">
                                             <span className="text-xs text-muted-foreground/80">
-                                                Expires {permission.expires}
+                                                {permission.active === false
+                                                    ? "Revoked"
+                                                    : `Expires ${permission.expires}`
+                                                }
                                             </span>
                                         </td>
-
-                                        {/* Actions Column - Dropdown Menu */}
                                         <td className="py-3 px-1 text-right">
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
@@ -114,6 +158,7 @@ export const CurrentPermissions = ({ permissions, hasActiveRecords }: CurrentPer
                                                         variant="ghost"
                                                         size="icon"
                                                         className="h-8 w-8"
+                                                        disabled={loading === permission.clinic_id}
                                                     >
                                                         <MoreVertical className="h-4 w-4" />
                                                     </Button>
@@ -121,14 +166,15 @@ export const CurrentPermissions = ({ permissions, hasActiveRecords }: CurrentPer
                                                 <DropdownMenuContent align="end" className="bg-white border-none">
                                                     <DropdownMenuItem
                                                         onClick={() => handleRevokeAccess(permission)}
-                                                        className="cursor-pointer text-yellow-300 focus:text-yellow-300"
+                                                        className="cursor-pointer text-yellow-600 focus:text-yellow-600"
+                                                        disabled={permission.active === false}
                                                     >
                                                         <XCircle className="mr-2 h-4 w-4" />
                                                         <span>Revoke Access</span>
                                                     </DropdownMenuItem>
                                                     <DropdownMenuItem
                                                         onClick={() => handleExtendAccess(permission)}
-                                                        className="cursor-pointer text-green-300 focus:text-green-300"
+                                                        className="cursor-pointer text-green-600 focus:text-green-600"
                                                     >
                                                         <Clock className="mr-2 h-4 w-4" />
                                                         <span>Extend Access</span>
@@ -147,12 +193,13 @@ export const CurrentPermissions = ({ permissions, hasActiveRecords }: CurrentPer
                                 ))}
                             </tbody>
                         </table>
-                        <Button variant="link" className="p-0 pt-2 text-sm h-auto font-semibold w-full justify-end">
-                            See All Permissions <ArrowRight className="ml-1 h-4 w-4" />
-                        </Button>
+                        <Link href="/dashboard/resident/permissions">
+                            <Button variant="link" className="p-0 pt-2 text-sm h-auto font-semibold w-full justify-end">
+                                See All Permissions <ArrowRight className="ml-1 h-4 w-4" />
+                            </Button>
+                        </Link>
                     </div>
                 ) : (
-                    // EMPTY STATE
                     <div className="flex flex-col items-center justify-center text-center py-12">
                         <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center mb-6">
                             <Lock className="h-10 w-10 text-primary" />
@@ -161,9 +208,11 @@ export const CurrentPermissions = ({ permissions, hasActiveRecords }: CurrentPer
                         <p className="mt-2 text-sm text-muted-foreground px-4">
                             You haven&apos;t shared access with any clinic yet.
                         </p>
-                        <Button className="mt-6 font-semibold" size="lg">
-                            Share Access
-                        </Button>
+                        <Link href="/dashboard/resident/permissions">
+                            <Button className="mt-6 font-semibold" size="lg">
+                                Share Access
+                            </Button>
+                        </Link>
                     </div>
                 )}
             </CardContent>
