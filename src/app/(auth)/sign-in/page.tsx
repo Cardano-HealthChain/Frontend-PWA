@@ -17,38 +17,34 @@ import Image from "next/image"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import React from "react"
-// import { loginUser } from "@/lib/api";
+import { login as apiLogin } from "@/lib/api";
+import { z } from 'zod';
 import { useAuthStore } from "@/store/authStore";
 import { HealthChainLoader } from "@/components/ui/HealthChainLoader";
 import axios from "axios";
+// import { loginSchema, LoginFormData } from "@/lib/schemas/auth";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 
-// --- TEMPORARY MOCK LOGIN FUNCTION ---
-/**
- * Simulates a successful login request and returns a user role based on the email.
- */
-const mockLogin = (email: string) => {
-    return new Promise<{ token: string, role: string }>((resolve, reject) => {
-        // Simulate network delay
-        setTimeout(() => {
-            const lowerEmail = email.toLowerCase();
-            
-            if (lowerEmail.startsWith('resident')) {
-                resolve({ token: 'mock-jwt-resident-123', role: 'resident' });
-            } else if (lowerEmail.startsWith('clinic')) {
-                resolve({ token: 'mock-jwt-clinic-456', role: 'clinic' });
-            } else if (lowerEmail.startsWith('authority')) {
-                resolve({ token: 'mock-jwt-authority-789', role: 'authority' });
-            } else {
-                // Simulate failed login for any other email
-                reject({ 
-                    response: { 
-                        data: { message: "Mock Login Failed: Invalid credentials or role." }
-                    }
-                });
-            }
-        }, 1200); // 1.2 second delay to show the loader
-    });
-};
+// Zod Schema for Login
+const loginSchema = z.object({
+  email: z.string()
+    .email('Please enter a valid email address')
+    .min(1, 'Email is required'),
+  password: z.string()
+    .min(6, 'Password must be at least 6 characters')
+    .min(1, 'Password is required'),
+});
+
+const loginResponseSchema = z.object({
+  token: z.string(),
+  role: z.enum(['resident', 'clinic', 'authority', 'admin']), 
+  user_id: z.string().optional(),
+  email: z.string().email().optional(),
+});
+
+type LoginResponse = z.infer<typeof loginResponseSchema>;
+type LoginFormData = z.infer<typeof loginSchema>;
 
 // Simple social login button component
 const SocialButton = ({
@@ -76,12 +72,23 @@ const SocialButton = ({
 export default function LoginPage() {
   const router = useRouter();
   // Get the login action from the store
-  const login = useAuthStore((state) => state.login);
+  const storeLogin = useAuthStore((state) => state.login);
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Initialize react-hook-form with Zod validation
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
 
   // Function to determine which dashboard to route to based on role
   const getDashboardPath = (role: string) => {
@@ -92,30 +99,36 @@ export default function LoginPage() {
         return '/dashboard/clinic';
       case 'authority':
         return '/dashboard/authority';
+      case 'admin':
+        return '/dashboard/admin';
       default:
         return '/dashboard'; // Default generic dashboard
     }
   };
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleLogin = async (data: LoginFormData) => {
     setError(null);
-    if (!email || !password) {
-      setError("Email and password are required.");
-      return;
-    }
-
     setIsLoading(true);
 
     try {
-      // Call the MOCK LOGIN function (or replace with real API call)
-      const response = await mockLogin(email);
-      // mockLogin returns { token, role }
-      const { token, role } = response;
+      // Call login API
+      const response = await apiLogin({
+        email: data.email,
+        password: data.password,
+      });
+
+      const { token, role } = response.data;
 
       if (token && role) {
         // Save the token and role to the Zustand store
-        login(token, role as any);
+        storeLogin(token, role as any);
+
+        // Optionally store token in localStorage via your api utility
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('auth_token', token);
+          localStorage.setItem('user_role', role);
+        }
+
         // Redirect to the correct, protected dashboard
         router.push(getDashboardPath(role));
       } else {
@@ -127,13 +140,19 @@ export default function LoginPage() {
       if (axios.isAxiosError(err) && err.response) {
         // Handle server errors (e.g., 401 Unauthorized)
         setError(err.response.data?.message || "Invalid email or password.");
+      } else if (err instanceof Error) {
+        // Handle other errors
+        setError(err.message || "An unexpected error occurred.");
       } else {
-        // Handle mock failures or network/unknown errors
-        setError("Invalid email/role. Try: resident@hc.com, clinic@hc.com, or authority@hc.com");
+        setError("Login failed. Please try again.");
       }
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const onSubmit = (data: LoginFormData) => {
+    handleLogin(data);
   };
 
   return (
@@ -146,83 +165,78 @@ export default function LoginPage() {
           </CardTitle>
           <CardDescription>Sign in to access your Health Data</CardDescription>
         </CardHeader>
-        <form onSubmit={handleLogin}>
-        <CardContent className="grid gap-6">
-          <div className="grid gap-2">
-            <Label htmlFor="email">Email or Username</Label>
-            <Input
-              id="email"
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <CardContent className="grid gap-6">
+            <div className="grid gap-2">
+              <Label htmlFor="email">Email or Username</Label>
+              <Input
+                id="email"
                 type="email"
-                value={email}
-              placeholder="ace.designs@gmail.com"
-              className="border-primary bg-white"
-                onChange={(e) => setEmail(e.target.value)}
-              disabled={isLoading}
-            />
-          </div>
-          <div className="grid gap-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="password">Password</Label>
-              <Link
-                href="#"
-                className="text-xs text-primary underline underline-offset-2"
-              >
-                Forgot Password?
-              </Link>
-            </div>
-            <Input
-              id="password"
-              type="password"
-              value={password}
+                placeholder="ace.designs@gmail.com"
                 className="border-primary bg-white"
-                onChange={(e) => setPassword(e.target.value)}
-              disabled={isLoading}
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <Checkbox id="remember" />
-            <Label htmlFor="remember" className="text-sm font-normal">
-              Remember me for 30 days
-            </Label>
-          </div>
-          {/* Error Message Display */}
-              {error && (
-                  <p className="text-sm text-destructive font-medium text-center">{error}</p>
+                disabled={isLoading}
+                {...register("email")}
+              />
+              {errors.email && (
+                <p className="text-sm text-destructive">{errors.email.message}</p>
               )}
-          <Button size="full" className="w-full font-semibold" disabled={isLoading} type="submit" onClick={handleLogin}>
-            Sign In
-          </Button>
+            </div>
+            <div className="grid gap-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password">Password</Label>
+                <Link
+                  href="#"
+                  className="text-xs text-primary underline underline-offset-2"
+                >
+                  Forgot Password?
+                </Link>
+              </div>
+              <Input
+                id="password"
+                type="password"
+                className="border-primary bg-white"
+                disabled={isLoading}
+                {...register("password")}
+              />
+              {errors.password && (
+                <p className="text-sm text-destructive">{errors.password.message}</p>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <Checkbox id="remember" />
+              <Label htmlFor="remember" className="text-sm font-normal">
+                Remember me for 30 days
+              </Label>
+            </div>
+            {/* Error Message Display */}
+            {error && (
+              <p className="text-sm text-destructive font-medium text-center">{error}</p>
+            )}
+            <Button
+              size="full"
+              className="w-full font-semibold"
+              disabled={isLoading}
+              type="submit"
+            >
+              {isLoading ? "Signing In..." : "Sign In"}
+            </Button>
 
-          {/* ----- OR CONTINUE WITH ----- */}
-          <div className="flex items-center gap-4">
-            <div className="h-px flex-1 bg-border" />
-            <span className="text-xs text-muted-foreground">
-              or continue with
-            </span>
-            <div className="h-px flex-1 bg-border" />
-          </div>
+            {/* ----- OR CONTINUE WITH ----- */}
+            <div className="flex items-center gap-4">
+              <div className="h-px flex-1 bg-border" />
+              <span className="text-xs text-muted-foreground">
+                or continue with
+              </span>
+              <div className="h-px flex-1 bg-border" />
+            </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <SocialButton provider="Google" icon="/images/google.svg" />
-            <SocialButton
-              provider="Connect with Metamask"
-              icon="/images/metamask.svg"
-            />
-            {/* <Button variant="outline" className="w-full text-xs lg:text-base">
-            <Image
-              src="/images/metamask.svg"
-              alt="Metamask"
-              width={20}
-              height={20}
-              className="lg:mr-2 mr-0"
-              onError={(e) =>
-                (e.currentTarget.src =
-                  "https://placehold.co/20x20/f0f4ff/6002ee?text=M")
-              }
-            />
-            Connect with Metamask
-          </Button> */}
-          </div>
+            <div className="grid grid-cols-2 gap-4">
+              <SocialButton provider="Google" icon="/images/google.svg" />
+              <SocialButton
+                provider="Connect with Metamask"
+                icon="/images/metamask.svg"
+              />
+            </div>
           </CardContent>
         </form>
         <CardFooter className="justify-center">

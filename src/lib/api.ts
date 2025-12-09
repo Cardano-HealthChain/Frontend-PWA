@@ -56,6 +56,13 @@ export interface SignupResponse {
   token: string;
 }
 
+export interface LoginResponse {
+  token: string;
+  role: string;
+  user_id?: string;
+  email?: string;
+}
+
 export interface LoginRequest {
   email: string;
   password: string;
@@ -127,8 +134,8 @@ export interface AuditLog {
 
 export interface ProfileData {
   email: string;
-  first_name: string;
-  last_name: string;
+  firstname: string;
+  lastname: string;
   phone_number: string;
   dob: string;
   gender: string;
@@ -152,9 +159,23 @@ export interface DashboardData {
   records: MedicalRecord[];
   notifications: Notification[];
   permissions: Permission[];
+  alerts: Alert[];
   verifiedRecordsCount: number;
   clinicsVisitedCount: number;
 }
+
+// Add to TYPE DEFINITIONS section:
+export interface Alert {
+  alert_id: string;
+  title: string;
+  description: string;
+  severity: 'High' | 'Medium' | 'Low';
+  alert_type: string;
+  created_at: string;
+  read: boolean;
+  metadata?: Record<string, any>;
+}
+
 
 // ============================================================================
 // AUTHENTICATION ENDPOINTS
@@ -170,10 +191,9 @@ export const signup = async (data: SignupRequest) => {
 /**
  * Login user and get JWT token
  */
-export const login = async (data: LoginRequest) => {
-  return apiClient.post<string>('/auth/login', data);
+export const login = async (data: LoginRequest): Promise<{ data: LoginResponse }> => {
+  return apiClient.post<LoginResponse>('/auth/login', data);
 };
-
 // ============================================================================
 // PROFILE ENDPOINTS
 // ============================================================================
@@ -292,6 +312,23 @@ export const revokePermission = async (clinicId: string) => {
 };
 
 // ============================================================================
+// ALERTS ENDPOINTS
+// ============================================================================
+/**
+ * Get user alerts (paginated)
+ */
+export const getAlerts = async (page: number = 0) => {
+  return apiClient.get<Alert[]>(`/api/v1/resident/alerts?page=${page}`);
+};
+
+/**
+ * Mark alert as read
+ */
+export const markAlertAsRead = async (alertId: string) => {
+  return apiClient.post(`/api/v1/resident/alerts/read?alertId=${alertId}`);
+};
+
+// ============================================================================
 // NOTIFICATIONS ENDPOINTS
 // ============================================================================
 
@@ -363,6 +400,7 @@ export const loadDashboard = async (): Promise<DashboardData> => {
     recordsRes,
     notificationsRes,
     permissionsRes,
+    alertsRes,
     verifiedCountRes,
     clinicsCountRes,
   ] = await Promise.all([
@@ -370,6 +408,7 @@ export const loadDashboard = async (): Promise<DashboardData> => {
     getMedicalRecords(0),
     getNotifications(0),
     getPermissions(0),
+    getAlerts(0),
     getVerifiedRecordsCount(),
     getClinicsVisitedCount(),
   ]);
@@ -379,6 +418,7 @@ export const loadDashboard = async (): Promise<DashboardData> => {
     records: recordsRes.data,
     notifications: notificationsRes.data,
     permissions: permissionsRes.data,
+    alerts: alertsRes.data,
     verifiedRecordsCount: verifiedCountRes.data,
     clinicsVisitedCount: clinicsCountRes.data,
   };
@@ -395,6 +435,7 @@ export const loadDashboardSafe = async (): Promise<Partial<DashboardData>> => {
       getMedicalRecords(0),
       getNotifications(0),
       getPermissions(0),
+      getAlerts(0),
       getVerifiedRecordsCount(),
       getClinicsVisitedCount(),
     ]);
@@ -413,11 +454,14 @@ export const loadDashboardSafe = async (): Promise<Partial<DashboardData>> => {
     if (results[3].status === 'fulfilled') {
       dashboardData.permissions = results[3].value.data;
     }
-    if (results[4].status === 'fulfilled') {
-      dashboardData.verifiedRecordsCount = results[4].value.data;
+    if (results[4].status === 'fulfilled') { // Add this
+      dashboardData.alerts = results[4].value.data;
     }
     if (results[5].status === 'fulfilled') {
-      dashboardData.clinicsVisitedCount = results[5].value.data;
+      dashboardData.verifiedRecordsCount = results[5].value.data;
+    }
+    if (results[6].status === 'fulfilled') {
+      dashboardData.clinicsVisitedCount = results[6].value.data;
     }
 
     return dashboardData;
