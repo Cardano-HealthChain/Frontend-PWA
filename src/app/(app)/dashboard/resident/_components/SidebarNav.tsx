@@ -95,8 +95,8 @@ export const SidebarNav = ({ user }: { user: { name: string } }) => {
                 </ul>
                 {/* User Badge / Footer */}
                 <div className="flex items-center space-x-3 rounded-lg bg-primary-foreground/10 p-3 text-sm">
-                    <User className="h-5 w-5" />
-                    <span className="font-medium">{user.name.split(' ')[0]}</span>
+                    <span className="h-7 w-7 rounded-full p-3 bg-white text-primary flex items-center justify-center font-bold text-xl">{user ? user.name.split(' ').map(word => word.charAt(0).toUpperCase()).join('') : 'User'}</span> 
+                    <span className="font-medium capitalize">{user ? user.name.split(' ')[0] : 'User'}</span>
                 </div>
             </div>
         </nav>
