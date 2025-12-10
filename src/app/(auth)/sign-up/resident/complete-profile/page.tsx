@@ -54,8 +54,8 @@ export default function CompleteProfilePage() {
 
       // Call API to update personal details
       await updatePersonalDetails({
-        firstname: data.firstName,
-        lastname: data.lastName,
+        firstname: data.firstname,
+        lastname: data.lastname,
         dob: data.dateOfBirth,
         gender: data.gender === "male" ? "Male" : data.gender === "female" ? "Female" : "Prefer not to say",
       });

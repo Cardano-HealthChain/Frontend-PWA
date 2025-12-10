@@ -133,7 +133,7 @@ export default function LoginPage() {
         router.push(getDashboardPath(role));
       } else {
         // Handle unexpected response shape
-        setError("Login failed. Invalid response structure from server.");
+        setError("Login failed. Please try again later.");
       }
     } catch (err) {
       console.error("Login Error:", err);
@@ -168,7 +168,7 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit(onSubmit)}>
           <CardContent className="grid gap-6">
             <div className="grid gap-2">
-              <Label htmlFor="email">Email or Username</Label>
+              <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 type="email"

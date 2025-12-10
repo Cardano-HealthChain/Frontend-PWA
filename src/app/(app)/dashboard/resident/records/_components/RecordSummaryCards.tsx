@@ -1,67 +1,27 @@
+// app/dashboard/resident/records/_components/RecordSummaryCards.tsx
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, UsersRound, TestTubeDiagonal, Ribbon, ClipboardPlus, Pill, Microscope } from "lucide-react";
+import { ArrowRight, TestTubeDiagonal, Ribbon, ClipboardPlus, Pill, Microscope } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { MedicalRecord } from "@/lib/api";
+import { useMemo } from "react";
 
-const summaryData = [
-    {
-        title: "Lab Tests",
-        count: "23 Lab Tests",
-        subtitle: "Last test",
-        details: "2 abnormal results",
-        status: "Status",
-        timeline: "3 weeks ago",
-        buttonLabel: "View Lab Tests",
-        color: "bg-green-100 text-green-900",
-        icon: TestTubeDiagonal
-    },
-    {
-        title: "Vaccinations",
-        count: "7 Vaccinations",
-        subtitle: "Next due",
-        details: "Hepatitis booster",
-        status: "Due in",
-        timeline: "2 months",
-        buttonLabel: "View Vaccinations",
-        color: "bg-blue-100 text-blue-900",
-        icon: Ribbon
-    },
-    {
-        title: "Clinic Visits",
-        count: "15 Visits",
-        subtitle: "Last visit",
-        details: "",
-        status: "Sunrise Clinic",
-        timeline: "20 May 2025",
-        buttonLabel: "View Visits",
-        color: "bg-purple-100 text-purple-900",
-        icon: ClipboardPlus
-    },
-    {
-        title: "Medications",
-        count: "4 Active Medications",
-        subtitle: "Last updated",
-        details: "1 medication expiring soon",
-        status: "Status",
-        timeline: "5 days ago",
-        buttonLabel: "View Medications",
-        color: "bg-red-100 text-red-900",
-        icon: Pill
-    },
-    {
-        title: "Imaging",
-        count: "8 Imaging Records",
-        subtitle: "Types",
-        details: "X-ray, MRI, Ultrasound",
-        status: "Latest",
-        timeline: "Chest X-ray (3 months ago)",
-        buttonLabel: "View Imaging",
-        color: "bg-pink-100 text-pink-900",
-        icon: Microscope
-    }
-];
+interface RecordSummaryCardsProps {
+    records: MedicalRecord[];
+}
 
-const SummaryCard = ({ title, count, subtitle, details, buttonLabel, color, status, timeline, icon: Icon }: any) => (
+const SummaryCard = ({
+    title,
+    count,
+    subtitle,
+    details,
+    buttonLabel,
+    color,
+    status,
+    timeline,
+    icon: Icon,
+    onClick
+}: any) => (
     <Card className={cn("shadow-sm border-none", color)}>
         <CardContent className="p-4 space-y-3">
             <div className="flex items-start gap-2">
@@ -82,14 +42,165 @@ const SummaryCard = ({ title, count, subtitle, details, buttonLabel, color, stat
                     <p className="text-xs opacity-80">{details}</p>
                 </div>
             </div>
-            <Button variant="outline" size="sm" className="w-full mt-2 text-xs bg-white/80 hover:bg-white border-primary">
+            <Button
+                variant="outline"
+                size="sm"
+                className="w-full mt-2 text-xs bg-white/80 hover:bg-white border-primary"
+                onClick={onClick}
+            >
                 {buttonLabel} <ArrowRight className="ml-1 h-3 w-3" />
             </Button>
         </CardContent>
     </Card>
 );
 
-export const RecordSummaryCards = () => {
+export const RecordSummaryCards = ({ records }: RecordSummaryCardsProps) => {
+    // Calculate statistics from actual records
+    const stats = useMemo(() => {
+        const byType: Record<string, MedicalRecord[]> = {};
+
+        records.forEach(record => {
+            const type = record.record_type || "Other";
+            if (!byType[type]) byType[type] = [];
+            byType[type].push(record);
+        });
+
+        // Get most recent record of each type
+        const getLatest = (type: string) => {
+            const typeRecords = byType[type] || [];
+            if (typeRecords.length === 0) return null;
+            return typeRecords.sort((a, b) =>
+                new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+            )[0];
+        };
+
+        const formatTimeAgo = (dateString: string) => {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffMs = now.getTime() - date.getTime();
+            const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+            const diffWeeks = Math.floor(diffDays / 7);
+            const diffMonths = Math.floor(diffDays / 30);
+
+            if (diffDays === 0) return "Today";
+            if (diffDays === 1) return "Yesterday";
+            if (diffDays < 7) return `${diffDays} days ago`;
+            if (diffWeeks < 4) return `${diffWeeks} week${diffWeeks > 1 ? 's' : ''} ago`;
+            return `${diffMonths} month${diffMonths > 1 ? 's' : ''} ago`;
+        };
+
+        // Lab Tests
+        const labTests = byType["Lab Result"] || byType["Laboratory"] || [];
+        const latestLab = getLatest("Lab Result") || getLatest("Laboratory");
+
+        // Vaccinations
+        const vaccinations = byType["Vaccination"] || [];
+        const latestVaccination = getLatest("Vaccination");
+
+        // Clinic Visits
+        const clinicVisits = byType["Clinic Visit"] || byType["Consultation"] || [];
+        const latestVisit = getLatest("Clinic Visit") || getLatest("Consultation");
+
+        // Medications
+        const medications = byType["Prescription"] || byType["Medication"] || [];
+        const latestMedication = getLatest("Prescription") || getLatest("Medication");
+
+        // Imaging
+        const imaging = byType["Imaging"] || byType["X-Ray"] || byType["MRI"] || byType["Ultrasound"] || [];
+        const latestImaging = getLatest("Imaging") || getLatest("X-Ray");
+
+        return {
+            labTests: {
+                count: labTests.length,
+                latest: latestLab,
+                timeline: latestLab ? formatTimeAgo(latestLab.created_at) : "No tests",
+            },
+            vaccinations: {
+                count: vaccinations.length,
+                latest: latestVaccination,
+                timeline: latestVaccination ? formatTimeAgo(latestVaccination.created_at) : "No records",
+            },
+            clinicVisits: {
+                count: clinicVisits.length,
+                latest: latestVisit,
+                timeline: latestVisit ? formatTimeAgo(latestVisit.created_at) : "No visits",
+            },
+            medications: {
+                count: medications.length,
+                latest: latestMedication,
+                timeline: latestMedication ? formatTimeAgo(latestMedication.created_at) : "No medications",
+            },
+            imaging: {
+                count: imaging.length,
+                latest: latestImaging,
+                timeline: latestImaging ? formatTimeAgo(latestImaging.created_at) : "No imaging",
+            },
+        };
+    }, [records]);
+
+    const summaryData = [
+        {
+            title: "Lab Tests",
+            count: `${stats.labTests.count} Lab Test${stats.labTests.count !== 1 ? 's' : ''}`,
+            subtitle: "Last test",
+            details: "",
+            status: "Status",
+            timeline: stats.labTests.timeline,
+            buttonLabel: "View Lab Tests",
+            color: "bg-green-100 text-green-900",
+            icon: TestTubeDiagonal,
+            onClick: () => console.log("View lab tests")
+        },
+        {
+            title: "Vaccinations",
+            count: `${stats.vaccinations.count} Vaccination${stats.vaccinations.count !== 1 ? 's' : ''}`,
+            subtitle: "Last vaccination",
+            details: "",
+            status: "",
+            timeline: stats.vaccinations.timeline,
+            buttonLabel: "View Vaccinations",
+            color: "bg-blue-100 text-blue-900",
+            icon: Ribbon,
+            onClick: () => console.log("View vaccinations")
+        },
+        {
+            title: "Clinic Visits",
+            count: `${stats.clinicVisits.count} Visit${stats.clinicVisits.count !== 1 ? 's' : ''}`,
+            subtitle: "Last visit",
+            details: "",
+            status: stats.clinicVisits.latest?.uploaded_by || "",
+            timeline: stats.clinicVisits.timeline,
+            buttonLabel: "View Visits",
+            color: "bg-purple-100 text-purple-900",
+            icon: ClipboardPlus,
+            onClick: () => console.log("View visits")
+        },
+        {
+            title: "Medications",
+            count: `${stats.medications.count} Medication${stats.medications.count !== 1 ? 's' : ''}`,
+            subtitle: "Last updated",
+            details: "",
+            status: "Status",
+            timeline: stats.medications.timeline,
+            buttonLabel: "View Medications",
+            color: "bg-red-100 text-red-900",
+            icon: Pill,
+            onClick: () => console.log("View medications")
+        },
+        {
+            title: "Imaging",
+            count: `${stats.imaging.count} Imaging Record${stats.imaging.count !== 1 ? 's' : ''}`,
+            subtitle: "Types",
+            details: "",
+            status: "Latest",
+            timeline: stats.imaging.timeline,
+            buttonLabel: "View Imaging",
+            color: "bg-pink-100 text-pink-900",
+            icon: Microscope,
+            onClick: () => console.log("View imaging")
+        }
+    ];
+
     return (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
             {summaryData.map((card, i) => (

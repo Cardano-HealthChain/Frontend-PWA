@@ -1,3 +1,4 @@
+//dashboard/resident/page.tsx - DEBUG VERSION
 "use client";
 
 import { useEffect, useState } from "react";
@@ -10,6 +11,19 @@ import { RefreshCw, AlertCircle } from "lucide-react";
 
 export default function ResidentDashboardPage() {
   const { data, isLoading, error, refetch } = useDashboard(true);
+
+  // ADD THIS DEBUG LOGGING
+  useEffect(() => {
+    if (data?.profile) {
+      console.log("=== PROFILE DATA DEBUG ===");
+      console.log("Full profile object:", data.profile);
+      console.log("first_name:", data.profile.first_name);
+      console.log("last_name:", data.profile.last_name);
+      console.log("first_name type:", typeof data.profile.first_name);
+      console.log("last_name type:", typeof data.profile.last_name);
+      console.log("========================");
+    }
+  }, [data]);
 
   // Loading State
   if (isLoading) {
@@ -35,14 +49,14 @@ export default function ResidentDashboardPage() {
 
   // Transform API data to match component props
   const user = data?.profile ? {
-    name: `${data.profile.firstname} ${data.profile.lastname}`,
-    did: data.profile.email?.substring(0, 7).toUpperCase() || "N/A", // Generate DID from email
+    name: `${data.profile.first_name || ""} ${data.profile.last_name || ""}`.trim() || "User",
+    did: data.profile.email?.substring(0, 7).toUpperCase() || "N/A",
     dob: data.profile.dob || "Not provided",
     gender: data.profile.gender || "Not specified",
-    region: data.profile.state_of_origin 
+    region: data.profile.state_of_origin
       ? `${data.profile.nationality || "Nigeria"} / ${data.profile.state_of_origin}`
       : "Not provided",
-    profileComplete: 70, // You can calculate this based on filled fields
+    profileComplete: 70,
     email: data.profile.email,
     phone: data.profile.phone_number,
     bloodType: data.profile.blood_type,
@@ -68,7 +82,6 @@ export default function ResidentDashboardPage() {
     message: n.message,
   })) || [];
 
-  // Keep learn cards as mock for now (unless you have an endpoint)
   const learnCards = [
     { title: "Understanding Vaccination Schedules", status: "Work on Task" },
     { title: "How HealthChain Protects Your Data", status: "View Lesson", comingSoon: true },
@@ -76,8 +89,6 @@ export default function ResidentDashboardPage() {
   ];
 
   const hasActiveRecords = (data?.records?.length || 0) > 0 || alerts.length > 0;
-
-  // Show partial error message if some data failed to load
   const hasPartialError = error && data;
 
   return (
@@ -159,64 +170,61 @@ function formatTime(sentAt: string): string {
 function DashboardSkeleton() {
   return (
     <div className="mt-8 space-y-8">
-      {/* Header */}
       <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
         <div>
-          <Skeleton className="h-12 w-[300px] mb-2" />
-          <Skeleton className="h-6 w-[250px]" />
+          <Skeleton className="h-12 w-[300px] mb-2 border-none" />
+          <Skeleton className="h-6 w-[250px] border-none" />
           <div className="flex gap-2 mt-6">
             {[...Array(4)].map((_, i) => (
-              <Skeleton key={i} className="h-10 w-32" />
+              <Skeleton key={i} className="h-10 w-32 border-none" />
             ))}
           </div>
         </div>
         <Card className="p-6">
-          <Skeleton className="h-24 w-24 rounded-full mb-4" />
-          <Skeleton className="h-6 w-[200px] mb-2" />
-          <Skeleton className="h-4 w-[150px]" />
+          <Skeleton className="h-24 w-24 rounded-full mb-4 border-none" />
+          <Skeleton className="h-6 w-[200px] mb-2 border-none" />
+          <Skeleton className="h-4 w-[150px] border-none" />
         </Card>
       </div>
 
-      {/* Stats Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
           <Card className="p-6">
-            <Skeleton className="h-6 w-[150px] mb-4" />
+            <Skeleton className="h-6 w-[150px] mb-4 border-none" />
             <div className="grid grid-cols-2 gap-4">
               {[...Array(4)].map((_, i) => (
                 <div key={i}>
-                  <Skeleton className="h-4 w-[100px] mb-2" />
-                  <Skeleton className="h-8 w-[80px]" />
+                  <Skeleton className="h-4 w-[100px] mb-2 border-none" />
+                  <Skeleton className="h-8 w-[80px] border-none" />
                 </div>
               ))}
             </div>
           </Card>
         </div>
         <Card className="p-6">
-          <Skeleton className="h-6 w-[150px] mb-4" />
+          <Skeleton className="h-6 w-[150px] mb-4 border-none" />
           <div className="space-y-3">
             {[...Array(3)].map((_, i) => (
-              <Skeleton key={i} className="h-16 w-full" />
+              <Skeleton key={i} className="h-16 w-full border-none" />
             ))}
           </div>
         </Card>
       </div>
 
-      {/* Additional Content */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
           <Card className="p-6">
-            <Skeleton className="h-6 w-[150px] mb-4" />
+            <Skeleton className="h-6 w-[150px] mb-4 border-none" />
             <div className="space-y-3">
               {[...Array(3)].map((_, i) => (
-                <Skeleton key={i} className="h-12 w-full" />
+                <Skeleton key={i} className="h-12 w-full border-none" />
               ))}
             </div>
           </Card>
         </div>
         <Card className="p-6">
-          <Skeleton className="h-6 w-[150px] mb-4" />
-          <Skeleton className="h-32 w-full" />
+          <Skeleton className="h-6 w-[150px] mb-4 border-none" />
+          <Skeleton className="h-32 w-full border-none" />
         </Card>
       </div>
     </div>

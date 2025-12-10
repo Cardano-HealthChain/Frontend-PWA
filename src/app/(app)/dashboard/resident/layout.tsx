@@ -160,7 +160,7 @@ export default function AppLayout({
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <div className="h-10 rounded-full bg-primary/20 flex items-center gap-2 md:gap-3 px-2 cursor-pointer hover:bg-primary/30 transition-colors">
-                  <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                  <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
                     <Image
                       src="/images/avatar.png"
                       alt="User Avatar"
