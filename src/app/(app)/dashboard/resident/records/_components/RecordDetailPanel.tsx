@@ -1,151 +1,193 @@
+// app/dashboard/resident/records/_components/RecordDetailPanel.tsx
 import { Button } from "@/components/ui/button";
-import { Eye, Download, Share2, X } from "lucide-react";
+import { Eye, Download, Share2, X, CheckCircle, AlertCircle } from "lucide-react";
+import { MedicalRecord } from "@/lib/api";
 
 type RecordDetailPanelProps = {
-  record: any;
+  record: MedicalRecord;
   onClose: () => void;
 };
 
-// This would normally come from an API based on the selected record
-const mockDetail = {
-    title: "Chest X-ray - PA View",
-    date: "20 Dec 2024 — 3:44 PM",
-    facility: "Emerald Diagnostics Centre",
-    radiologist: "Dr. Tara Onafowora (Consultant Radiologist)",
-    recordType: "Imaging",
-    status: "Verified",
-    findings: "No signs of pneumonia, infiltrate, or pleural effusion. No signs of pneumothorax or pleural effusion. Cardiac silhouette is normal in size and contour. Trachea is midline. No masses or nodules detected. Diaphragm well defined.",
-    reasonForTest: "Persistent cough lasting 2-3 weeks",
-    conclusion: "Normal chest radiograph.",
-    comparison: {
-        lastImaging: "July 2023",
-        changes: "No changes detected. Lung clarity significantly improved from previous minor congestion"
-    },
-    radiologistNote: "No underlying pathology seen. Recommend follow-up only if symptoms persist",
-    aiInsight: "There is a 98% probability of normal lung appearance based on automated image analysis.",
-    attachments: [
-        { name: "Xray_Chest_20220204.jpg", type: "High-res" },
-        { name: "Radiologist_Report.pdf", type: "PDF" }
-    ],
-    sharedWith: [
-        { name: "HavenPoint Clinic", access: "" },
-        { name: "Sunrise Medical", access: "(Read-only)" }
-    ],
-    auditLog: [
-        { action: "Image analyzed by AI", date: "Dec 20" },
-        { action: "Viewed by Resident", date: "Dec 22" },
-        { action: "Viewed by HavenPoint", date: "Dec 23" }
-    ]
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-US', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+};
+
+const parseRecordData = (recordData: string) => {
+  try {
+    return JSON.parse(recordData);
+  } catch {
+    return null;
+  }
 };
 
 export const RecordDetailPanel = ({ record, onClose }: RecordDetailPanelProps) => {
+  const parsedData = parseRecordData(record.record_data);
+
   return (
     <div className="h-full bg-white border-none rounded-lg shadow-xl overflow-y-auto">
       <div className="p-6 space-y-6">
         {/* Header */}
         <div className="flex justify-between items-start pb-4 border-b border-gray-200">
-          <h3 className="text-xl font-bold">{mockDetail.title}</h3>
+          <div>
+            <h3 className="text-xl font-bold">{record.record_type || "Medical Record"}</h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              {formatDate(record.created_at)}
+            </p>
+          </div>
           <Button variant="ghost" size="icon" onClick={onClose}>
             <X className="h-5 w-5" />
           </Button>
         </div>
 
+        {/* Verification Status */}
+        <div className={`flex items-center gap-2 p-3 rounded-lg ${record.verified
+            ? 'bg-green-50 border border-green-200'
+            : 'bg-yellow-50 border border-yellow-200'
+          }`}>
+          {record.verified ? (
+            <>
+              <CheckCircle className="h-5 w-5 text-green-600" />
+              <div>
+                <p className="text-sm font-medium text-green-900">Verified Record</p>
+                <p className="text-xs text-green-700">
+                  This record has been verified on the blockchain
+                </p>
+              </div>
+            </>
+          ) : (
+            <>
+              <AlertCircle className="h-5 w-5 text-yellow-600" />
+              <div>
+                <p className="text-sm font-medium text-yellow-900">Pending Verification</p>
+                <p className="text-xs text-yellow-700">
+                  This record is awaiting blockchain verification
+                </p>
+              </div>
+            </>
+          )}
+        </div>
+
         {/* Basic Info */}
         <div className="space-y-3 text-sm">
-          <InfoRow label="Date" value={mockDetail.date} />
-          <InfoRow label="Facility" value={mockDetail.facility} />
-          <InfoRow label="Radiologist" value={mockDetail.radiologist} />
-          <InfoRow label="Status" value={mockDetail.status} isStatus />
+          <InfoRow label="Patient Name" value={record.patientName} />
+          <InfoRow label="Record Type" value={record.record_type} />
+          <InfoRow label="Uploaded By" value={record.uploaded_by} />
+          <InfoRow label="Created" value={formatDate(record.created_at)} />
+          <InfoRow
+            label="Status"
+            value={record.verified ? "Verified" : "Pending"}
+            isStatus
+            verified={record.verified}
+          />
         </div>
 
-        <Section title="Reason for Test" content={mockDetail.reasonForTest} /> 
-
-        {/* Conclusion */}
-        <div className="space-y-2">
-          <h4 className="font-semibold border-b border-gray-200 pb-2">Conclusion</h4>
-          <p className="text-sm text-muted-foreground flex items-center gap-1">
-            <span className="h-2 w-2 rounded-full bg-green-500"></span>
-            {mockDetail.conclusion}
-          </p>
-        </div>
-
-        {/* Comparison with Previous Imaging */}
-        <div className="space-y-2">
-          <h4 className="font-semibold border-b border-gray-200 pb-2">Comparison with Previous Imaging</h4>
-          <div className="text-sm text-muted-foreground space-y-1">
-            <p>Last chest imaging: {mockDetail.comparison.lastImaging}</p>
-            <p>{mockDetail.comparison.changes}</p>
-          </div>
-        </div>
-
-        {/* Radiologist Note */}
-        <Section title="Radiologist Note" content={mockDetail.radiologistNote} />
-
-        {/* AI Insight */}
-        <Section title="HealthChain AI Insight" content={mockDetail.aiInsight} />
-
-        {/* Attachments */}
-        <div className="space-y-2">
-          <h4 className="font-semibold border-b pb-2">Attachments</h4>
+        {/* Blockchain Info */}
+        {record.verified && (
           <div className="space-y-2">
-            {mockDetail.attachments.map((file, i) => (
-              <div key={i} className="flex items-center gap-2 p-2 rounded bg-muted/50 hover:bg-muted transition-colors cursor-pointer">
-                {/* <span className="text-blue-600">📄</span> */}
-                <div className="flex-1">
-                  <p className="text-sm font-medium">{file.name}</p>
-                  <p className="text-xs text-muted-foreground">{file.type}</p>
-                </div>
-                <Download className="h-4 w-4 text-muted-foreground" />
+            <h4 className="font-semibold border-b border-gray-200 pb-2">Blockchain Details</h4>
+            <div className="space-y-2">
+              <div className="bg-muted/50 p-3 rounded-lg">
+                <p className="text-xs text-muted-foreground mb-1">Transaction ID</p>
+                <p className="text-xs font-mono break-all">{record.blockchainTransactionID}</p>
               </div>
-            ))}
+              <div className="bg-muted/50 p-3 rounded-lg">
+                <p className="text-xs text-muted-foreground mb-1">Local Hash</p>
+                <p className="text-xs font-mono break-all">{record.hash_local}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Record Data */}
+        {parsedData && (
+          <div className="space-y-2">
+            <h4 className="font-semibold border-b border-gray-200 pb-2">Record Details</h4>
+            <div className="bg-muted/50 p-3 rounded-lg">
+              <pre className="text-xs whitespace-pre-wrap break-words">
+                {JSON.stringify(parsedData, null, 2)}
+              </pre>
+            </div>
+          </div>
+        )}
+
+        {/* Raw Data Fallback */}
+        {!parsedData && record.record_data && (
+          <div className="space-y-2">
+            <h4 className="font-semibold border-b border-gray-200 pb-2">Record Content</h4>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              {record.record_data}
+            </p>
+          </div>
+        )}
+
+        {/* Record ID */}
+        <div className="space-y-2">
+          <h4 className="font-semibold border-b border-gray-200 pb-2">Record Information</h4>
+          <div className="bg-muted/50 p-3 rounded-lg">
+            <p className="text-xs text-muted-foreground">Record ID</p>
+            <p className="text-sm font-mono break-all">{record.record_id}</p>
           </div>
         </div>
 
-        {/* Shared With */}
-        <div className="space-y-2">
-          <h4 className="font-semibold border-b border-gray-200 pb-2">Shared With</h4>
-          <div className="space-y-2">
-            {mockDetail.sharedWith.map((clinic, i) => (
-              <div key={i} className="flex items-center justify-between p-2 rounded bg-muted/50">
-                <div className="flex items-center gap-2">
-                  {/* <span className="text-lg">🏥</span> */}
-                  <span className="text-sm font-medium">{clinic.name}</span>
-                </div>
-                {clinic.access && (
-                  <span className="text-xs text-muted-foreground">{clinic.access}</span>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
+        {/* AI Insight Placeholder */}
+        <Section
+          title="HealthChain AI Insight"
+          content="This record has been securely stored and verified using blockchain technology, ensuring its authenticity and preventing unauthorized modifications."
+        />
 
-        {/* Audit Log */}
-        <div className="space-y-2">
-          <h4 className="font-semibold border-b border-gray-200 pb-2">Audit Log</h4>
-          <div className="space-y-2">
-            {mockDetail.auditLog.map((log, i) => (
-              <div key={i} className="flex justify-between text-sm py-1">
-                <span className="text-muted-foreground">{log.action}</span>
-                <span className="text-muted-foreground">{log.date}</span>
-              </div>
-            ))}
-          </div>
-              </div>
-              
         {/* Actions */}
         <div className="space-y-3">
           <h4 className="font-semibold border-b border-gray-200 pb-2">Actions</h4>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-2">
-            <Button variant="outline" className="w-full justify-start border-primary rounded-lg">
-              <Eye className="mr-2 h-4 w-4" /> View Image
+            <Button
+              variant="outline"
+              className="w-full justify-start border-primary rounded-lg"
+              onClick={() => console.log("View record:", record.record_id)}
+            >
+              <Eye className="mr-2 h-4 w-4" /> View Full
             </Button>
-            <Button variant="outline" className="w-full justify-start border-primary rounded-lg">
+            <Button
+              variant="outline"
+              className="w-full justify-start border-primary rounded-lg"
+              onClick={() => {
+                // Download logic
+                const dataStr = JSON.stringify(record, null, 2);
+                const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(dataBlob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `record_${record.record_id}.json`;
+                link.click();
+                URL.revokeObjectURL(url);
+              }}
+            >
               <Download className="mr-2 h-4 w-4" /> Download
             </Button>
-            <Button variant="outline" className="w-full justify-start border-primary rounded-lg">
+            <Button
+              variant="outline"
+              className="w-full justify-start border-primary rounded-lg"
+              onClick={() => console.log("Share record:", record.record_id)}
+            >
               <Share2 className="mr-2 h-4 w-4" /> Share
             </Button>
           </div>
+        </div>
+
+        {/* Verification Note */}
+        <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <p className="text-xs text-blue-900 leading-relaxed">
+            <strong>Note:</strong> All medical records on HealthChain are cryptographically
+            secured and stored on a distributed ledger, ensuring data integrity and
+            immutability. {record.verified ? "This record's authenticity has been verified." :
+              "Once verified, this record cannot be altered or deleted."}
+          </p>
         </div>
       </div>
     </div>
@@ -153,16 +195,28 @@ export const RecordDetailPanel = ({ record, onClose }: RecordDetailPanelProps) =
 };
 
 // Helper Components
-const InfoRow = ({ label, value, isStatus }: { label: string; value: string; isStatus?: boolean }) => (
+const InfoRow = ({
+  label,
+  value,
+  isStatus,
+  verified
+}: {
+  label: string;
+  value: string;
+  isStatus?: boolean;
+  verified?: boolean;
+}) => (
   <div className="flex justify-between">
     <span className="text-muted-foreground">{label}</span>
     {isStatus ? (
       <span className="flex items-center gap-1">
-        <span className="h-2 w-2 rounded-full bg-green-500"></span>
-        <span className="font-medium text-green-700">{value}</span>
+        <span className={`h-2 w-2 rounded-full ${verified ? 'bg-green-500' : 'bg-yellow-500'}`}></span>
+        <span className={`font-medium ${verified ? 'text-green-700' : 'text-yellow-700'}`}>
+          {value}
+        </span>
       </span>
     ) : (
-      <span className="font-medium">{value}</span>
+      <span className="font-medium text-right">{value}</span>
     )}
   </div>
 );

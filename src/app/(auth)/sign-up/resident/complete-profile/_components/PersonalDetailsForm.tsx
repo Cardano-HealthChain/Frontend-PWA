@@ -27,8 +27,8 @@ import {
 // Zod Schema for Personal Details
 const personalDetailsSchema = z.object({
   // did: z.string().min(1, "DID is required"),
-  firstName: z.string().min(2, "First name must be at least 2 characters"),
-  lastName: z.string().min(2, "Last name must be at least 2 characters"),
+  firstname: z.string().min(2, "First name must be at least 2 characters"),
+  lastname: z.string().min(2, "Last name must be at least 2 characters"),
   dateOfBirth: z.string().min(1, "Date of birth is required"),
   gender: z.enum(["male", "female", "prefer-not-to-say"]).refine((val) => val !== undefined, {
     message: "Please select a gender",
@@ -47,8 +47,8 @@ export function PersonalDetailsForm({ onSubmit, defaultValues }: PersonalDetails
     resolver: zodResolver(personalDetailsSchema),
     defaultValues: {
       // did: defaultValues?.did || generateDID(),
-      firstName: defaultValues?.firstName || "",
-      lastName: defaultValues?.lastName || "",
+      firstname: defaultValues?.firstname || "",
+      lastname: defaultValues?.lastname || "",
       dateOfBirth: defaultValues?.dateOfBirth || "",
       gender: defaultValues?.gender,
     },
@@ -102,7 +102,7 @@ export function PersonalDetailsForm({ onSubmit, defaultValues }: PersonalDetails
         <div className="grid md:col-span-2 gap-2">
           <FormField
             control={form.control}
-            name="firstName"
+            name="firstname"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>First Name</FormLabel>
@@ -122,7 +122,7 @@ export function PersonalDetailsForm({ onSubmit, defaultValues }: PersonalDetails
         <div className="grid md:col-span-2 gap-2">
           <FormField
             control={form.control}
-            name="lastName"
+            name="lastname"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Last Name</FormLabel>

@@ -20,6 +20,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { useState } from "react";
 
 const nigerianStates = [
   "Abia", "Adamawa", "Akwa Ibom", "Anambra", "Bauchi", "Bayelsa", "Benue",
@@ -43,6 +44,7 @@ interface LocationFormProps {
 }
 
 export function LocationForm({ onSubmit, defaultValues }: LocationFormProps) {
+  const [searchTerm, setSearchTerm] = useState("");
   const form = useForm({
     resolver: zodResolver(locationSchema),
     defaultValues: {
@@ -50,6 +52,10 @@ export function LocationForm({ onSubmit, defaultValues }: LocationFormProps) {
       state: defaultValues?.state || "",
     },
   });
+
+  const filteredStates = nigerianStates.filter(state =>
+    state.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <Form {...form}>
@@ -81,18 +87,46 @@ export function LocationForm({ onSubmit, defaultValues }: LocationFormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>State / Region</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select 
+                  onValueChange={field.onChange} 
+                  value={field.value}
+                  defaultValue={field.value}
+                >
                   <FormControl>
-                    <SelectTrigger className="border-primary">
-                      <SelectValue placeholder="Select State / Region" />
+                    <SelectTrigger className="border-primary w-full">
+                      <SelectValue placeholder="Select State / Region">
+                        {field.value ? nigerianStates.find(s => s.toLowerCase() === field.value) || field.value : "Select State / Region"}
+                      </SelectValue>
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent className="bg-white">
-                    {nigerianStates.map((state) => (
-                      <SelectItem key={state} value={state.toLowerCase()}>
-                        {state}
-                      </SelectItem>
-                    ))}
+                  <SelectContent className="bg-white max-h-[300px] overflow-y-auto">
+                    {/* Search input */}
+                    <div className="sticky top-0 z-10 bg-white p-2 border-b">
+                      <Input
+                        placeholder="Search states..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full"
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    </div>
+                    
+                    {/* Filtered states */}
+                    {filteredStates.length > 0 ? (
+                      filteredStates.map((state) => (
+                        <SelectItem 
+                          key={state} 
+                          value={state.toLowerCase()}
+                          className="cursor-pointer hover:bg-gray-100 focus:bg-gray-100"
+                        >
+                          {state}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <div className="p-4 text-center text-gray-500">
+                        No states found matching "{searchTerm}"
+                      </div>
+                    )}
                   </SelectContent>
                 </Select>
                 <FormMessage />

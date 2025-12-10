@@ -33,7 +33,7 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401) {
       if (typeof window !== 'undefined') {
         localStorage.removeItem('auth_token');
-        window.location.href = '/login';
+        window.location.href = '/sign-in';
       }
     }
     return Promise.reject(error);
@@ -134,8 +134,8 @@ export interface AuditLog {
 
 export interface ProfileData {
   email: string;
-  firstname: string;
-  lastname: string;
+  first_name: string;
+  last_name: string;
   phone_number: string;
   dob: string;
   gender: string;
@@ -509,7 +509,7 @@ export const removeAuthToken = () => {
 export const logout = () => {
   removeAuthToken();
   if (typeof window !== 'undefined') {
-    window.location.href = '/login';
+    window.location.href = '/sign-in';
   }
 };
 

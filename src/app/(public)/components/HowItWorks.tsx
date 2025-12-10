@@ -53,7 +53,7 @@ export const HowItWorks = () => {
         <h2 className="text-3xl font-extrabold tracking-tight md:text-4xl lg:text-5xl">
           How HealthChain Works
         </h2>
-        <p className="mt-2 text-lg text-muted-foreground whitespace-nowrap">
+        <p className="mt-2 text-lg text-muted-foreground">
           A simple, secure way to manage health records for residents, clinics,
           and communities.
         </p>
