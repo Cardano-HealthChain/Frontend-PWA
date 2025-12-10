@@ -200,27 +200,27 @@ export const PermissionGrid = ({
             ))}
           </div>
 
-                    {/* Load More Button */}
-                    {hasMore && (
-                        <div className="flex justify-center mt-6">
-                            <Button
-                                variant="outline"
-                                onClick={onLoadMore}
-                                disabled={isLoading}
-                            >
-                                {isLoading ? (
-                                    <>
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        Loading...
-                                    </>
-                                ) : (
-                                    "Load More"
-                                )}
-                            </Button>
-                        </div>
-                    )}
-                </>
-            )}
-        </div>
-    );
+          {/* Load More Button */}
+          {hasMore && (
+            <div className="flex justify-center mt-6">
+              <Button 
+                variant="outline" 
+                onClick={onLoadMore}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Loading...
+                  </>
+                ) : (
+                  "Load More"
+                )}
+              </Button>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
 };
