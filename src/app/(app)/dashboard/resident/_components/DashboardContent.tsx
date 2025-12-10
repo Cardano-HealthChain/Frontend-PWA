@@ -94,7 +94,7 @@ export const DashboardContent = ({
                         <div className="flex items-center justify-between">
                             <h1 className="text-3xl lg:text-5xl font-extrabold tracking-tight">
                                 {getGreeting()}, <br />
-                                <span className="mt-2">
+                                <span className="mt-2 capitalize text-primary">
                                     {user?.name?.split(' ')[0] || "User"} 👋
                                 </span>
                             </h1>

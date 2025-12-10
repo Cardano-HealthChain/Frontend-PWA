@@ -3,6 +3,7 @@
 import { useAuthStore, initializeAuth } from "@/store/authStore";
 import { useRouter, usePathname } from "next/navigation";
 import React, { useEffect, useState } from "react";
+import Link from "next/link"
 import { HealthChainLoader } from "@/components/ui/HealthChainLoader";
 import { SidebarNav } from "./_components/SidebarNav";
 import { Search, Bell, ChevronDown, Menu, X, User, Settings, LogOut } from "lucide-react";
@@ -15,16 +16,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
-// Mock user data - You can replace this with actual user data from your store
-const MOCK_USER = {
-  name: "Joshua Aladeloye",
-  did: "345EUQX",
-  dob: "25-10-2023",
-  gender: "MALE",
-  region: "Nigeria / Abuja",
-  profileComplete: 70,
-};
+import { useDashboard } from "@/hooks/useDashboard";
+import { useLogout } from '@/hooks/useLogout';
 
 // The protected layout for all dashboard pages (/dashboard, /settings, etc.)
 export default function AppLayout({
@@ -35,7 +28,16 @@ export default function AppLayout({
   const { isAuthenticated, isReady, userRole } = useAuthStore();
   const router = useRouter();
   const pathname = usePathname();
+  const { logout, isLoggingOut } = useLogout();
+  const [isOpen, setIsOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { data } = useDashboard(true);
+
+  // Transform API data to match component props
+  const user = data?.profile ? {
+    name: `${data.profile.first_name || ""} ${data.profile.last_name || ""}`.trim() || "User",
+    did: data.profile.email?.substring(0, 7).toUpperCase() || "N/A",
+  } : null;
 
   // 1. Initialize auth state on mount
   useEffect(() => {
@@ -74,12 +76,20 @@ export default function AppLayout({
     return <HealthChainLoader loadingText="Verifying Credentials..." />;
   }
 
+  // Handle logout with confirmation
+  const handleLogout = async () => {
+    // Optional: Add confirmation dialog
+    if (window.confirm('Are you sure you want to log out?')) {
+      await logout();
+    }
+  };
+
   // 6. Render the dashboard UI if authenticated
   return (
     <div className="flex min-h-screen bg-gray-50 text-foreground">
       {/* Desktop Sidebar - Hidden on mobile */}
       <div className="hidden md:block">
-        <SidebarNav user={MOCK_USER} />
+        {user && <SidebarNav user={user} />}
       </div>
 
       {/* Mobile Sidebar Overlay */}
@@ -93,7 +103,7 @@ export default function AppLayout({
 
           {/* Sidebar */}
           <div className="fixed left-0 top-0 h-full w-[280px] z-50 md:hidden transform transition-transform duration-300 ease-in-out">
-            <SidebarNav user={MOCK_USER} />
+            {user && <SidebarNav user={user} />}
             {/* Close button */}
             <Button
               variant="ghost"
@@ -176,22 +186,28 @@ export default function AppLayout({
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56 bg-white border-none">
                 <div className="px-2 py-1.5">
-                  <p className="text-sm font-medium">{MOCK_USER.name}</p>
-                  <p className="text-xs text-muted-foreground">DID: {MOCK_USER.did}</p>
+                  <p className="text-lg font-medium text-primary capitalize">{user ? user.name : "User"}</p>
+                  <p className="text-xs text-muted-foreground">DID: {user ? user.did : "N/A"}</p>
                 </div>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="cursor-pointer">
+                  <Link href="/dashboard/resident/settings" className="flex items-center">
                   <User className="mr-2 h-4 w-4" />
                   <span>Profile</span>
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem className="cursor-pointer">
+                  <Link href="/dashboard/resident/settings" className="flex items-center">
                   <Settings className="mr-2 h-4 w-4" />
                   <span>Settings</span>
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="cursor-pointer text-destructive focus:text-destructive">
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Log Out</span>
+                  <Link href="/dashboard/resident/logout" className="flex items-center">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Log Out</span>
+                  </Link>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

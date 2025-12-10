@@ -73,8 +73,8 @@ export const RecordsTable = ({
     return (
         <div>
             {/* Search and Filter Bar */}
-            <div className="mb-6 flex flex-col sm:flex-row gap-3">
-                <div className="relative flex-1">
+            <div className="mb-6 flex flex-col sm:flex-row justify-between gap-3">
+                <div className="relative flex-1 max-w-[350px]">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                         type="search"

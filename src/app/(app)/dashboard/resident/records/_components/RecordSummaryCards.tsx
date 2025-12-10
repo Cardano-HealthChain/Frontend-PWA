@@ -5,6 +5,7 @@ import { ArrowRight, TestTubeDiagonal, Ribbon, ClipboardPlus, Pill, Microscope }
 import { cn } from "@/lib/utils";
 import { MedicalRecord } from "@/lib/api";
 import { useMemo } from "react";
+import { useRouter } from "next/navigation";
 
 interface RecordSummaryCardsProps {
     records: MedicalRecord[];
@@ -20,42 +21,54 @@ const SummaryCard = ({
     status,
     timeline,
     icon: Icon,
-    onClick
-}: any) => (
-    <Card className={cn("shadow-sm border-none", color)}>
-        <CardContent className="p-4 space-y-3">
-            <div className="flex items-start gap-2">
-                <div className="h-8 w-8 rounded bg-white/50 flex items-center justify-center">
-                    <Icon className="h-5 w-5" />
+    onClick,
+    href
+}: any) => {
+    const router = useRouter();
+
+    const handleClick = () => {
+        if (href) {
+            router.push(href);
+        } else if (onClick) {
+            onClick();
+        }
+    };
+
+    return (
+        <Card className={cn("shadow-sm border-none", color)}>
+            <CardContent className="p-4 space-y-3">
+                <div className="flex items-start gap-2">
+                    <div className="h-8 w-8 rounded bg-white/50 flex items-center justify-center">
+                        <Icon className="h-5 w-5" />
+                    </div>
+                    <p className="text-xs font-medium opacity-90 mt-3">{title}</p>
                 </div>
-                <p className="text-xs font-medium opacity-90 mt-3">{title}</p>
-            </div>
-            <div className="w-full bg-gray-100 mb-4 h-px"></div>
-            <div>
-                <p className="text-lg lg:text-xl font-bold">{count}</p>
-                <div className="flex items-start justify-between">
-                    <p className="text-xs mt-1 opacity-80">{subtitle}</p>
-                    <p className="text-xs mt-1 opacity-80">{timeline}</p>
+                <div className="w-full bg-gray-100 mb-4 h-px"></div>
+                <div>
+                    <p className="text-lg lg:text-xl font-bold">{count}</p>
+                    <div className="flex items-start justify-between">
+                        <p className="text-xs mt-1 opacity-80">{subtitle}</p>
+                        <p className="text-xs mt-1 opacity-80">{timeline}</p>
+                    </div>
+                    <div className="mt-1 flex items-start justify-between">
+                        <p className="text-xs opacity-80">{status}</p>
+                        <p className="text-xs opacity-80">{details}</p>
+                    </div>
                 </div>
-                <div className="mt-1 flex items-start justify-between">
-                    <p className="text-xs opacity-80">{status}</p>
-                    <p className="text-xs opacity-80">{details}</p>
-                </div>
-            </div>
-            <Button
-                variant="outline"
-                size="sm"
-                className="w-full mt-2 text-xs bg-white/80 hover:bg-white border-primary"
-                onClick={onClick}
-            >
-                {buttonLabel} <ArrowRight className="ml-1 h-3 w-3" />
-            </Button>
-        </CardContent>
-    </Card>
-);
+                <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full mt-2 text-xs bg-white/80 hover:bg-white border-primary"
+                    onClick={handleClick}
+                >
+                    {buttonLabel} <ArrowRight className="ml-1 h-3 w-3" />
+                </Button>
+            </CardContent>
+        </Card>
+    );
+};
 
 export const RecordSummaryCards = ({ records }: RecordSummaryCardsProps) => {
-    // Calculate statistics from actual records
     const stats = useMemo(() => {
         const byType: Record<string, MedicalRecord[]> = {};
 
@@ -65,9 +78,11 @@ export const RecordSummaryCards = ({ records }: RecordSummaryCardsProps) => {
             byType[type].push(record);
         });
 
-        // Get most recent record of each type
-        const getLatest = (type: string) => {
-            const typeRecords = byType[type] || [];
+        const getLatest = (types: string[]) => {
+            const typeRecords: MedicalRecord[] = [];
+            types.forEach(type => {
+                if (byType[type]) typeRecords.push(...byType[type]);
+            });
             if (typeRecords.length === 0) return null;
             return typeRecords.sort((a, b) =>
                 new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
@@ -91,23 +106,23 @@ export const RecordSummaryCards = ({ records }: RecordSummaryCardsProps) => {
 
         // Lab Tests
         const labTests = byType["Lab Result"] || byType["Laboratory"] || [];
-        const latestLab = getLatest("Lab Result") || getLatest("Laboratory");
+        const latestLab = getLatest(["Lab Result", "Laboratory"]);
 
         // Vaccinations
         const vaccinations = byType["Vaccination"] || [];
-        const latestVaccination = getLatest("Vaccination");
+        const latestVaccination = getLatest(["Vaccination"]);
 
         // Clinic Visits
         const clinicVisits = byType["Clinic Visit"] || byType["Consultation"] || [];
-        const latestVisit = getLatest("Clinic Visit") || getLatest("Consultation");
+        const latestVisit = getLatest(["Clinic Visit", "Consultation"]);
 
         // Medications
         const medications = byType["Prescription"] || byType["Medication"] || [];
-        const latestMedication = getLatest("Prescription") || getLatest("Medication");
+        const latestMedication = getLatest(["Prescription", "Medication"]);
 
         // Imaging
         const imaging = byType["Imaging"] || byType["X-Ray"] || byType["MRI"] || byType["Ultrasound"] || [];
-        const latestImaging = getLatest("Imaging") || getLatest("X-Ray");
+        const latestImaging = getLatest(["Imaging", "X-Ray", "MRI", "Ultrasound"]);
 
         return {
             labTests: {
@@ -149,7 +164,7 @@ export const RecordSummaryCards = ({ records }: RecordSummaryCardsProps) => {
             buttonLabel: "View Lab Tests",
             color: "bg-green-100 text-green-900",
             icon: TestTubeDiagonal,
-            onClick: () => console.log("View lab tests")
+            href: "/dashboard/resident/records/lab-tests"
         },
         {
             title: "Vaccinations",
@@ -161,7 +176,7 @@ export const RecordSummaryCards = ({ records }: RecordSummaryCardsProps) => {
             buttonLabel: "View Vaccinations",
             color: "bg-blue-100 text-blue-900",
             icon: Ribbon,
-            onClick: () => console.log("View vaccinations")
+            href: "/dashboard/resident/records/vaccinations"
         },
         {
             title: "Clinic Visits",
@@ -173,7 +188,7 @@ export const RecordSummaryCards = ({ records }: RecordSummaryCardsProps) => {
             buttonLabel: "View Visits",
             color: "bg-purple-100 text-purple-900",
             icon: ClipboardPlus,
-            onClick: () => console.log("View visits")
+            href: "/dashboard/resident/records/clinic-visits"
         },
         {
             title: "Medications",
@@ -185,7 +200,7 @@ export const RecordSummaryCards = ({ records }: RecordSummaryCardsProps) => {
             buttonLabel: "View Medications",
             color: "bg-red-100 text-red-900",
             icon: Pill,
-            onClick: () => console.log("View medications")
+            href: "/dashboard/resident/records/medications"
         },
         {
             title: "Imaging",
@@ -197,7 +212,7 @@ export const RecordSummaryCards = ({ records }: RecordSummaryCardsProps) => {
             buttonLabel: "View Imaging",
             color: "bg-pink-100 text-pink-900",
             icon: Microscope,
-            onClick: () => console.log("View imaging")
+            href: "/dashboard/resident/records/imaging"
         }
     ];
 

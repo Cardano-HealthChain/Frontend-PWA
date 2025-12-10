@@ -60,7 +60,7 @@ export const ProfileCard = ({
       </div>
       <div>
         <div>
-          <h2 className="mt-4 text-xl lg:text-2xl font-bold">{user?.name || "User"}</h2>
+          <h2 className="mt-4 text-xl lg:text-2xl font-bold uppercase">{user?.name || "User"}</h2>
           <p className="text-xs lg:text-sm text-muted-foreground">{user?.region || "Not provided"}</p>
           {user?.verified && (
             <span className="inline-flex items-center gap-1 text-xs text-green-600 mt-1">
