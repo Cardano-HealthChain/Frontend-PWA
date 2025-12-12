@@ -4,13 +4,12 @@ import Link from "next/link";
 import Image from "next/image";
 import { 
   BarChart, 
-  Stethoscope, 
   Users, 
   Calendar, 
   FileText, 
-  FileBarChart,
-  PieChart,
-  AlertCircle,
+  ClipboardList, 
+  Clock,
+  Bell, 
   Settings, 
   LogOut 
 } from "lucide-react";
@@ -18,28 +17,27 @@ import { cn } from "@/lib/utils";
 import { usePathname } from "next/navigation";
 
 const navItems = [
-  { href: "/dashboard/clinic", label: "Dashboard", icon: BarChart }, 
-  { href: "/dashboard/clinic/doctors", label: "Doctors", icon: Stethoscope },
-  { href: "/dashboard/clinic/patients", label: "Patients", icon: Users },
-  { href: "/dashboard/clinic/appointments", label: "Appointments", icon: Calendar },
-  { href: "/dashboard/clinic/records", label: "Records", icon: FileText },
-  { href: "/dashboard/clinic/reports", label: "Reports", icon: FileBarChart },
-  { href: "/dashboard/clinic/analytics", label: "Analytics", icon: PieChart },
-  { href: "/dashboard/clinic/alerts", label: "Alerts", icon: AlertCircle },
+  { href: "/dashboard/doctor", label: "Dashboard", icon: BarChart },
+  { href: "/dashboard/doctor/patients", label: "Patients", icon: Users },
+  { href: "/dashboard/doctor/appointments", label: "Appointments", icon: Calendar },
+  { href: "/dashboard/doctor/records", label: "Records", icon: FileText },
+  { href: "/dashboard/doctor/prescriptions", label: "Prescriptions", icon: ClipboardList },
+  { href: "/dashboard/doctor/schedule", label: "Schedule", icon: Clock },
+  { href: "/dashboard/doctor/notifications", label: "Notifications", icon: Bell },
 ];
 
 const secondaryItems = [
-  { href: "/dashboard/clinic/settings", label: "Settings", icon: Settings },
-  { href: "/dashboard/clinic/logout", label: "Log Out", icon: LogOut },
+  { href: "/dashboard/doctor/settings", label: "Settings", icon: Settings },
+  { href: "/dashboard/doctor/logout", label: "Log Out", icon: LogOut },
 ];
 
-export const ClinicSidebarNav = ({ clinic }: { clinic: { name: string; location?: string } }) => {
+export const DoctorSidebarNav = ({ doctor }: { doctor: { name: string; specialty?: string } }) => {
   const pathname = usePathname();
 
   const isActive = (href: string) => {
     // For the main dashboard page, only match exact path
-    if (href === "/dashboard/clinic") {
-      return pathname === "/dashboard/clinic";
+    if (href === "/dashboard/doctor") {
+      return pathname === "/dashboard/doctor";
     }
 
     // For other pages, check if pathname starts with href
@@ -47,10 +45,10 @@ export const ClinicSidebarNav = ({ clinic }: { clinic: { name: string; location?
   };
 
   return (
-    <nav className="fixed left-0 top-0 h-full w-[250px] flex-col justify-between bg-primary p-4 text-white shadow-lg flex overflow-y-auto">
+    <nav className="fixed left-0 top-0 h-full w-[250px] flex-col justify-between bg-primary p-4 text-white shadow-lg flex">
       {/* Top Section */}
       <div>
-        <Link href="/dashboard/clinic" className="mb-8 flex items-center justify-center">
+        <Link href="/dashboard/doctor" className="mb-8 flex items-center justify-center">
           <Image
             src="/images/logo0.png"
             alt="HealthChain Logo"
@@ -85,7 +83,7 @@ export const ClinicSidebarNav = ({ clinic }: { clinic: { name: string; location?
       </div>
 
       {/* Bottom Section */}
-      <div className="space-y-4 mt-4">
+      <div className="space-y-4">
         <ul className="space-y-2 border-t border-primary-foreground/20 pt-4">
           {secondaryItems.map((item) => {
             const Icon = item.icon;
@@ -108,19 +106,19 @@ export const ClinicSidebarNav = ({ clinic }: { clinic: { name: string; location?
           })}
         </ul>
         
-        {/* Clinic Badge */}
-        <div className="flex flex-col space-y-1 rounded-lg bg-primary-foreground/10 p-3 text-sm">
+        {/* User Badge */}
+        <div className="flex flex-col space-y-2 rounded-lg bg-primary-foreground/10 p-3 text-sm">
           <div className="flex items-center space-x-3">
-            <span className="h-8 w-8 rounded-full bg-white text-primary flex items-center justify-center font-bold text-sm shrink-0">
-              🏥
+            <span className="h-8 w-8 rounded-full bg-white text-primary flex items-center justify-center font-bold text-sm">
+              {doctor?.name ? doctor.name.split(' ').map(word => word.charAt(0).toUpperCase()).join('').slice(0, 2) : 'DR'}
             </span> 
             <div className="flex-1 min-w-0">
-              <p className="font-medium truncate">
-                {clinic?.name || 'Clinic Admin'}
+              <p className="font-medium capitalize truncate">
+                Dr. {doctor?.name?.split(' ')[0] || 'Doctor'}
               </p>
-              {clinic?.location && (
+              {doctor?.specialty && (
                 <p className="text-xs text-primary-foreground/60 truncate">
-                  {clinic.location}
+                  {doctor.specialty}
                 </p>
               )}
             </div>

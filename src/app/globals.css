@@ -96,6 +96,26 @@
 
 }
 
+@layer components {
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    @apply w-2;
+  }
+  
+  ::-webkit-scrollbar-track {
+    @apply bg-muted;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    @apply bg-primary rounded-full;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-primary;
+  }
+}
+
+
 /* Add a dark mode if you want, but for now, we'll focus on light */
 
 body {
