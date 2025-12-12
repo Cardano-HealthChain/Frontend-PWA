@@ -50,11 +50,13 @@ type LoginFormData = z.infer<typeof loginSchema>;
 const SocialButton = ({
   provider,
   icon,
+  className,
 }: {
   provider: string
   icon: string
+  className: string | undefined
 }) => (
-  <Button variant="outline" className="w-full">
+  <Button variant="outline" className={`w-full rounded-md ${className}`}>
     <Image
       src={icon}
       alt={provider}
@@ -231,10 +233,11 @@ export default function LoginPage() {
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <SocialButton provider="Google" icon="/images/google.svg" />
+              <SocialButton provider="Google" icon="/images/google.svg" className="" />
               <SocialButton
-                provider="Connect with Metamask"
-                icon="/images/metamask.svg"
+                provider="Lace Wallet"
+                icon="/images/lace1.png"
+                className="bg-black text-white"
               />
             </div>
           </CardContent>

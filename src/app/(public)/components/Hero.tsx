@@ -18,9 +18,7 @@ export const Hero = () => {
           Records, Powered by <span className="text-primary">You.</span>
         </h1>
         <p className="mt-6 text-lg text-muted-foreground">
-          HealthChain lets you securely store your medical records, share them
-          with clinics only when you choose, and receive essential health alerts
-          that protect your community.
+          HealthChain is built on <span className="uppercase text-primary font-semibold">cardano blockchain</span> and lets you securely store your medical records, share them with clinics only when you choose, and receive essential health alerts that help protect your community.
         </p>
         <Link href="/sign-up" className="cursor-pointer">
           <Button size="lg" className="mt-8">
