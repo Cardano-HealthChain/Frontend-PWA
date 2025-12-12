@@ -1,4 +1,4 @@
-import axios, { AxiosInstance, AxiosError } from 'axios';
+import axios, { AxiosInstance, AxiosError, AxiosResponse } from 'axios';
 
 // Base API URL
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://backend-apis-production-5e22.up.railway.app';
@@ -175,6 +175,69 @@ export interface Alert {
   read: boolean;
   metadata?: Record<string, any>;
 }
+
+/**
+ * Sign up with wallet
+ */
+export interface WalletSignupData {
+  walletAddress: string;
+  stakeAddress?: string;
+  publicKey: string;
+  signature: string;
+  message: string;
+  role: 'resident' | 'clinic' | 'authority';
+}
+
+export const walletSignup = async (data: WalletSignupData) => {
+  return apiClient.post('/auth/wallet-signup', data);
+};
+
+/**
+ * Login with wallet
+ */
+export interface WalletLoginData {
+  walletAddress: string;
+  signature: string;
+  message: string;
+  publicKey: string;
+  stakeAddress?: string;
+}
+
+export const walletLogin = async (data: WalletLoginData) => {
+  return apiClient.post('/auth/wallet-login', data);
+};
+
+/**
+ * Link wallet to existing account
+ */
+export interface LinkWalletData {
+  walletAddress: string;
+  stakeAddress?: string;
+  publicKey: string;
+  signature: string;
+  message: string;
+}
+
+export const linkWallet = async (data: LinkWalletData) => {
+  return apiClient.post('/auth/link-wallet', data);
+};
+
+/**
+ * Verify wallet signature (utility function)
+ */
+export const verifyWalletSignature = async (
+  walletAddress: string,
+  signature: string,
+  message: string,
+  publicKey: string
+) => {
+  return apiClient.post('/auth/verify-signature', {
+    walletAddress,
+    signature,
+    message,
+    publicKey,
+  });
+};
 
 
 // ============================================================================
