@@ -34,7 +34,7 @@ const steps = [
   {
     title: "Stay Informed With Community Health Alerts",
     description:
-      "At a clinic, your DID is scanned to confirm your identity. You then choose what the clinic can see or update by granting a Verifiable Credential.",
+      "HealthChain notifies you about health concerns near you—such as outbreaks, environmental risks, or community health warnings.",
     points: [
       "Critical outbreak warnings.",
       "Vaccination drive info.",

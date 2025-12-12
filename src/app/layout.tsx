@@ -13,9 +13,31 @@ const urbanist = Urbanist({
 })
 
 export const metadata: Metadata = {
-  title: "HealthChain",
-  description: "Decentralized Community Health Records.",
-}
+  title: "HealthChain – Decentralized Community Health Records",
+  description: "HealthChain is a Cardano-powered decentralized medical record system enabling secure, user-owned health data.",
+  keywords: [
+    "HealthChain",
+    "Health Chain",
+    "HealthChain Cardano",
+    "Cardano healthcare",
+    "Cardano medical records",
+    "decentralized health records",
+    "blockchain healthcare app"
+  ],
+  openGraph: {
+    title: "HealthChain – Cardano-Powered Health Records",
+    description: "A decentralized, user-owned health data platform built on Cardano.",
+    url: "https://healthchain-cardano.vercel.app",
+    type: "website"
+  },
+  manifest: "/manifest.json",
+  themeColor: "#4F46E5",
+  icons: {
+    icon: "/icons/icon-192x192.png",
+    apple: "/icons/icon-192x192.png",
+    shortcut: "/icons/icon-512x512.png"
+  }
+} 
 
 export default function RootLayout({
   children,
