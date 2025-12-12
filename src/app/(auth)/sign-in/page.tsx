@@ -17,14 +17,15 @@ import Image from "next/image"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import React from "react"
-import { login as apiLogin } from "@/lib/api";
+import { login as apiLogin, walletLogin } from "@/lib/api";
 import { z } from 'zod';
 import { useAuthStore } from "@/store/authStore";
 import { HealthChainLoader } from "@/components/ui/HealthChainLoader";
 import axios from "axios";
-// import { loginSchema, LoginFormData } from "@/lib/schemas/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { useWalletAuth } from "@/hooks/useWalletAuth";
+import { useToast } from "@/hooks/use-toast";
 
 // Zod Schema for Login
 const loginSchema = z.object({
@@ -36,48 +37,24 @@ const loginSchema = z.object({
     .min(1, 'Password is required'),
 });
 
-const loginResponseSchema = z.object({
-  token: z.string(),
-  role: z.enum(['resident', 'clinic', 'authority', 'admin']), 
-  user_id: z.string().optional(),
-  email: z.string().email().optional(),
-});
-
-type LoginResponse = z.infer<typeof loginResponseSchema>;
 type LoginFormData = z.infer<typeof loginSchema>;
-
-// Simple social login button component
-const SocialButton = ({
-  provider,
-  icon,
-  className,
-}: {
-  provider: string
-  icon: string
-  className: string | undefined
-}) => (
-  <Button variant="outline" className={`w-full rounded-md ${className}`}>
-    <Image
-      src={icon}
-      alt={provider}
-      width={20}
-      height={20}
-      className="mr-2 text-xs lg:text-base"
-      onError={(e) =>
-        (e.currentTarget.src = `https://placehold.co/20x20/f0f4ff/6002ee?text=${provider[0]}`)
-      }
-    />
-    {provider}
-  </Button>
-)
 
 export default function LoginPage() {
   const router = useRouter();
-  // Get the login action from the store
+  const { toast } = useToast();
   const storeLogin = useAuthStore((state) => state.login);
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [loadingText, setLoadingText] = useState("Authenticating Credentials...");
+
+  // Wallet authentication hook
+  const {
+    isLaceInstalled,
+    isConnecting: isWalletConnecting,
+    connectWallet,
+    signMessage,
+  } = useWalletAuth();
 
   // Initialize react-hook-form with Zod validation
   const {
@@ -99,21 +76,24 @@ export default function LoginPage() {
         return '/dashboard/resident';
       case 'clinic':
         return '/dashboard/clinic';
+      case 'doctor':
+        return '/dashboard/doctor';
       case 'authority':
         return '/dashboard/authority';
       case 'admin':
         return '/dashboard/admin';
       default:
-        return '/dashboard'; // Default generic dashboard
+        return '/dashboard';
     }
   };
 
-  const handleLogin = async (data: LoginFormData) => {
+  // Traditional email/password login
+  const handleEmailLogin = async (data: LoginFormData) => {
     setError(null);
     setIsLoading(true);
+    setLoadingText("Authenticating Credentials...");
 
     try {
-      // Call login API
       const response = await apiLogin({
         email: data.email,
         password: data.password,
@@ -122,28 +102,23 @@ export default function LoginPage() {
       const { token, role } = response.data;
 
       if (token && role) {
-        // Save the token and role to the Zustand store
         storeLogin(token, role as any);
 
-        // Optionally store token in localStorage via your api utility
         if (typeof window !== 'undefined') {
           localStorage.setItem('auth_token', token);
           localStorage.setItem('user_role', role);
+          localStorage.setItem('auth_method', 'email');
         }
 
-        // Redirect to the correct, protected dashboard
         router.push(getDashboardPath(role));
       } else {
-        // Handle unexpected response shape
         setError("Login failed. Please try again later.");
       }
     } catch (err) {
       console.error("Login Error:", err);
       if (axios.isAxiosError(err) && err.response) {
-        // Handle server errors (e.g., 401 Unauthorized)
         setError(err.response.data?.message || "Invalid email or password.");
       } else if (err instanceof Error) {
-        // Handle other errors
         setError(err.message || "An unexpected error occurred.");
       } else {
         setError("Login failed. Please try again.");
@@ -153,13 +128,112 @@ export default function LoginPage() {
     }
   };
 
+  // Wallet-based login
+  const handleWalletLogin = async () => {
+    try {
+      setIsLoading(true);
+      setLoadingText("Connecting to Lace Wallet...");
+
+      // Check if Lace is installed
+      if (!isLaceInstalled()) {
+        toast({
+          title: "Lace Wallet Not Found",
+          description: "Please install Lace wallet from lace.io to continue.",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      // Connect wallet and get address
+      const connectionResult = await connectWallet();
+
+      if (!connectionResult.success) {
+        toast({
+          title: "Connection Failed",
+          description: connectionResult.error || "Failed to connect wallet",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      setLoadingText("Signing Authentication Message...");
+
+      // Generate a unique message to sign
+      const authMessage = `HealthChain Authentication\nTimestamp: ${Date.now()}\nAction: Login\nAddress: ${connectionResult.walletAddress}`;
+
+      // Sign the message with wallet
+      const signResult = await signMessage(authMessage);
+
+      if (!signResult.success) {
+        toast({
+          title: "Signature Failed",
+          description: signResult.error || "Failed to sign message",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      setLoadingText("Verifying Blockchain Identity...");
+
+      // Call wallet login API endpoint
+      const response = await walletLogin({
+        walletAddress: connectionResult.walletAddress!,
+        signature: signResult.signature!,
+        message: authMessage,
+        publicKey: signResult.publicKey!,
+        stakeAddress: connectionResult.stakeAddress || undefined,
+      });
+
+      const { token, role } = response.data;
+
+      if (token && role) {
+        storeLogin(token, role as any);
+
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('auth_token', token);
+          localStorage.setItem('user_role', role);
+          localStorage.setItem('wallet_address', connectionResult.walletAddress!);
+          localStorage.setItem('auth_method', 'wallet');
+        }
+
+        toast({
+          title: "Login Successful! 🎉",
+          description: "Welcome back to HealthChain.",
+        });
+
+        router.push(getDashboardPath(role));
+      } else {
+        setError("Wallet login failed. Please try again.");
+      }
+    } catch (err: any) {
+      console.error("Wallet login error:", err);
+
+      let errorMessage = "Wallet not registered. Please sign up first.";
+
+      if (axios.isAxiosError(err) && err.response) {
+        errorMessage = err.response.data?.message || errorMessage;
+      }
+
+      toast({
+        title: "Wallet Login Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+
+      setIsLoading(false);
+    }
+  };
+
   const onSubmit = (data: LoginFormData) => {
-    handleLogin(data);
+    handleEmailLogin(data);
   };
 
   return (
     <>
-      {isLoading && <HealthChainLoader loadingText="Authenticating Credentials..." />}
+      {isLoading && <HealthChainLoader loadingText={loadingText} />}
       <Card className="w-full max-w-lg bg-transparent border-none">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl lg:text-4xl font-bold">
@@ -210,10 +284,12 @@ export default function LoginPage() {
                 Remember me for 30 days
               </Label>
             </div>
+
             {/* Error Message Display */}
             {error && (
               <p className="text-sm text-destructive font-medium text-center">{error}</p>
             )}
+
             <Button
               size="full"
               className="w-full font-semibold"
@@ -233,12 +309,39 @@ export default function LoginPage() {
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <SocialButton provider="Google" icon="/images/google.svg" className="" />
-              <SocialButton
-                provider="Lace Wallet"
-                icon="/images/lace1.png"
-                className="bg-black text-white"
-              />
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full rounded-md"
+                disabled
+              >
+                <Image
+                  src="/images/google.svg"
+                  alt="Google"
+                  width={20}
+                  height={20}
+                  className="mr-2 text-xs lg:text-base"
+                />
+                Google
+              </Button>
+
+              {/* Lace Wallet Login */}
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full rounded-md bg-black text-white hover:bg-gray-800 border-none"
+                onClick={handleWalletLogin}
+                disabled={isLoading || isWalletConnecting}
+              >
+                <Image
+                  src="/images/lace1.png"
+                  alt="Lace Wallet"
+                  width={20}
+                  height={20}
+                  className="mr-2 text-xs lg:text-base"
+                />
+                {isWalletConnecting ? "Connecting..." : "Lace Wallet"}
+              </Button>
             </div>
           </CardContent>
         </form>

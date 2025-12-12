@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Wallet } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -26,9 +26,11 @@ import {
   FormMessage,
   FormDescription,
 } from "@/components/ui/form";
-import { signup, setAuthToken } from "@/lib/api";
+import { signup, setAuthToken, walletSignup } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { HealthChainLoader } from "@/components/ui/HealthChainLoader";
+import { useWalletAuth } from "@/hooks/useWalletAuth";
+import Image from "next/image";
 
 // Zod Schema for Signup
 const signupSchema = z.object({
@@ -60,6 +62,15 @@ export default function ResidentSignUpPage() {
   const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingText, setLoadingText] = useState("Creating Your Account...");
+
+  // Wallet authentication hook
+  const {
+    isLaceInstalled,
+    isConnecting: isWalletConnecting,
+    connectWallet,
+    signMessage,
+  } = useWalletAuth();
 
   const form = useForm<SignupFormData>({
     resolver: zodResolver(signupSchema),
@@ -71,9 +82,11 @@ export default function ResidentSignUpPage() {
     },
   });
 
-  const handleSignup = async (data: SignupFormData) => {
+  // Traditional email/password signup
+  const handleEmailSignup = async (data: SignupFormData) => {
     try {
       setIsLoading(true);
+      setLoadingText("Creating Your Account...");
 
       // Call signup API
       const response = await signup({
@@ -86,9 +99,10 @@ export default function ResidentSignUpPage() {
       // Store JWT token
       setAuthToken(response.data.token);
 
-      // Store email for later use (e.g., in secure account page)
+      // Store user data
       if (typeof window !== 'undefined') {
         localStorage.setItem('user_email', response.data.user_email);
+        localStorage.setItem('auth_method', 'email');
       }
 
       toast({
@@ -106,7 +120,6 @@ export default function ResidentSignUpPage() {
 
       let errorMessage = "Failed to create account. Please try again.";
 
-      // Handle specific error messages from backend
       if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else if (error.response?.status === 400) {
@@ -125,9 +138,107 @@ export default function ResidentSignUpPage() {
     }
   };
 
+  // Wallet-based signup
+  const handleWalletSignup = async () => {
+    try {
+      setIsLoading(true);
+      setLoadingText("Connecting to Lace Wallet...");
+
+      // Check if Lace is installed
+      if (!isLaceInstalled()) {
+        toast({
+          title: "Lace Wallet Not Found",
+          description: "Please install Lace wallet from lace.io to continue.",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      // Connect wallet and get address
+      const connectionResult = await connectWallet();
+
+      if (!connectionResult.success) {
+        toast({
+          title: "Connection Failed",
+          description: connectionResult.error || "Failed to connect wallet",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      setLoadingText("Signing Authentication Message...");
+
+      // Generate a unique message to sign (for authentication proof)
+      const authMessage = `HealthChain Authentication\nTimestamp: ${Date.now()}\nAction: Signup\nRole: Resident`;
+
+      // Sign the message with wallet
+      const signResult = await signMessage(authMessage);
+
+      if (!signResult.success) {
+        toast({
+          title: "Signature Failed",
+          description: signResult.error || "Failed to sign message",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      setLoadingText("Creating Blockchain Account...");
+
+      // Call wallet signup API endpoint
+      const response = await walletSignup({
+        walletAddress: connectionResult.walletAddress!,
+        stakeAddress: connectionResult.stakeAddress! || undefined,
+        publicKey: signResult.publicKey!,
+        signature: signResult.signature!,
+        message: authMessage,
+        role: 'resident',
+      });
+
+      // Store JWT token and wallet info
+      setAuthToken(response.data.token);
+
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('wallet_address', connectionResult.walletAddress!);
+        localStorage.setItem('auth_method', 'wallet');
+        localStorage.setItem('user_role', 'resident');
+      }
+
+      toast({
+        title: "Wallet Connected! 🎉",
+        description: "Your blockchain account has been created successfully.",
+      });
+
+      // Navigate to complete profile page
+      setTimeout(() => {
+        router.push("/sign-up/resident/complete-profile");
+      }, 1000);
+
+    } catch (error: any) {
+      console.error("Wallet signup error:", error);
+
+      let errorMessage = "Failed to sign up with wallet. Please try again.";
+
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+
+      toast({
+        title: "Wallet Signup Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+
+      setIsLoading(false);
+    }
+  };
+
   return (
     <>
-      {isLoading && <HealthChainLoader loadingText="Creating Your Account..." />}
+      {isLoading && <HealthChainLoader loadingText={loadingText} />}
       <Card className="w-full max-w-xl bg-transparent border-none">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl lg:text-4xl font-bold">
@@ -139,7 +250,7 @@ export default function ResidentSignUpPage() {
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleSignup)} className="grid gap-6">
+            <form onSubmit={form.handleSubmit(handleEmailSignup)} className="grid gap-6">
 
               {/* First Name & Last Name */}
               <div className="grid grid-cols-2 gap-4">
@@ -153,7 +264,7 @@ export default function ResidentSignUpPage() {
                         <Input
                           {...field}
                           placeholder="Joshua"
-                          className="border-primary"
+                          className="border-primary bg-white"
                           disabled={isLoading}
                         />
                       </FormControl>
@@ -172,7 +283,7 @@ export default function ResidentSignUpPage() {
                         <Input
                           {...field}
                           placeholder="Bryan"
-                          className="border-primary"
+                          className="border-primary bg-white"
                           disabled={isLoading}
                         />
                       </FormControl>
@@ -194,7 +305,7 @@ export default function ResidentSignUpPage() {
                         {...field}
                         type="email"
                         placeholder="ace.designs@gmail.com"
-                        className="border-primary"
+                        className="border-primary bg-white"
                         disabled={isLoading}
                       />
                     </FormControl>
@@ -215,7 +326,7 @@ export default function ResidentSignUpPage() {
                         <Input
                           {...field}
                           type={showPassword ? "text" : "password"}
-                          className="pr-10 border-primary"
+                          className="pr-10 border-primary bg-white"
                           disabled={isLoading}
                         />
                         <Button
@@ -249,7 +360,7 @@ export default function ResidentSignUpPage() {
                 className="font-semibold mt-2"
                 disabled={isLoading}
               >
-                Create Account
+                {isLoading ? "Creating Account..." : "Create Account"}
               </Button>
 
               {/* Divider */}
@@ -261,7 +372,7 @@ export default function ResidentSignUpPage() {
                 <div className="h-px flex-1 bg-border" />
               </div>
 
-              {/* Social Login Placeholders */}
+              {/* Social Login Buttons */}
               <div className="grid grid-cols-2 gap-4">
                 <Button
                   type="button"
@@ -289,16 +400,23 @@ export default function ResidentSignUpPage() {
                   </svg>
                   Google
                 </Button>
+
+                {/* Lace Wallet Button */}
                 <Button
                   type="button"
                   variant="outline"
-                  className="border-primary"
-                  disabled
+                  className="bg-black text-white hover:bg-gray-800 border-none"
+                  onClick={handleWalletSignup}
+                  disabled={isLoading || isWalletConnecting}
                 >
-                  <svg className="mr-2 h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.17 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.167 22 16.418 22 12c0-5.523-4.477-10-10-10z" />
-                  </svg>
-                  GitHub
+                  <Image
+                    src="/images/lace1.png"
+                    alt="Lace"
+                    width={20}
+                    height={20}
+                    className="mr-2"
+                  />
+                  {isWalletConnecting ? "Connecting..." : "Lace Wallet"}
                 </Button>
               </div>
             </form>
