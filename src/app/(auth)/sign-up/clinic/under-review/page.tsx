@@ -47,7 +47,7 @@ export default function ClinicUnderReviewPage() {
             size="full"
             variant="outline"
             className="mt-6 w-full max-w-xs border-primary"
-            onClick={() => router.push("/dashboard")}
+            onClick={() => router.push("/dashboard/clinic")}
           >
             Go to Dashboard (Read-only mode)
           </Button>

@@ -5,8 +5,8 @@ import { useRouter, usePathname } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { HealthChainLoader } from "@/components/ui/HealthChainLoader";
-import { ClinicSidebarNav } from "./_components/SidebarNav";
-import { Search, Bell, ChevronDown, Menu, X, User, Settings, LogOut, Building2 } from "lucide-react";
+import { DoctorSidebarNav } from "./_components/SidebarNav";
+import { Search, Bell, ChevronDown, Menu, X, User, Settings, LogOut } from "lucide-react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,10 +16,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useClinicDashboard } from "@/hooks/useClinicDashboard";
+import { useDoctorDashboard } from "@/hooks/useDoctorDashboard";
 import { useLogout } from '@/hooks/useLogout';
 
-export default function ClinicLayout({
+export default function DoctorLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -29,17 +29,20 @@ export default function ClinicLayout({
   const pathname = usePathname();
   const { logout } = useLogout();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { data } = useClinicDashboard(true);
+  const { data } = useDoctorDashboard(true);
 
-  // Transform API data to match component props
-  // const clinic = data?.clinic ? {
-  //   name: data.clinic.name || "HealthChain Clinic",
-  //   location: data.clinic.location || "Healthcare Facility",
-  // } : null;
-  const clinic = {
-    name: data?.clinic?.name || "HealthChain Clinic",
-    location: data?.clinic?.location || "Healthcare Facility",
+
+   const doctor = {
+     name: data?.doctor?.name || "Doctor",
+     specialty: data?.doctor?.specialty || "General Medicine",
+     clinic: data?.doctor?.clinic_name || "HealthChain",
   };
+  // Transform API data to match component props
+  // const doctor = data?.doctor ? {
+  //   name: `${data.doctor.name || "Doctor"}`,
+  //   specialty: data.doctor.specialty || "General Medicine",
+  //   clinic: data.doctor.clinic_name || "HealthChain",
+  // } : null;
 
   // Initialize auth state on mount
   useEffect(() => {
@@ -52,9 +55,9 @@ export default function ClinicLayout({
   // useEffect(() => {
   //   if (isReady && !isAuthenticated) {
   //     router.push(`/sign-in?redirect=${pathname}`);
-  //   } else if (isReady && isAuthenticated && userRole !== 'clinic') {
-  //     // Redirect if user is not a clinic admin
-  //     router.push('/');
+  //   } else if (isReady && isAuthenticated && userRole !== 'doctor') {
+  //     // Redirect if user is not a doctor
+  //     router.push('/dashboard/resident');
   //   }
   // }, [isReady, isAuthenticated, userRole, router, pathname]);
 
@@ -91,7 +94,7 @@ export default function ClinicLayout({
     <div className="flex min-h-screen bg-gray-50 text-foreground">
       {/* Desktop Sidebar - Hidden on mobile */}
       <div className="hidden md:block">
-        {clinic && <ClinicSidebarNav clinic={clinic} />}
+        {doctor && <DoctorSidebarNav doctor={doctor} />}
       </div>
 
       {/* Mobile Sidebar Overlay */}
@@ -105,7 +108,7 @@ export default function ClinicLayout({
 
           {/* Sidebar */}
           <div className="fixed left-0 top-0 h-full w-[280px] z-50 md:hidden transform transition-transform duration-300 ease-in-out">
-            {clinic && <ClinicSidebarNav clinic={clinic} />}
+            {doctor && <DoctorSidebarNav doctor={doctor} />}
             {/* Close button */}
             <Button
               variant="ghost"
@@ -138,7 +141,7 @@ export default function ClinicLayout({
             <Search className="absolute left-3 h-4 w-4 text-muted-foreground" />
             <input
               type="search"
-              placeholder="Search doctors, patients, records..."
+              placeholder="Search patients, appointments..."
               className="w-full rounded-lg border border-border bg-secondary py-2 pl-10 pr-4 text-sm focus:border-primary focus:outline-none"
             />
           </div>
@@ -157,7 +160,7 @@ export default function ClinicLayout({
 
           {/* Right Side Icons */}
           <div className="flex items-center gap-2 md:gap-3">
-            {/* Bell Icon with Badge */}
+            {/* Bell Icon */}
             <Button variant="ghost" size="icon" className="relative">
               <Bell className="h-5 w-5 lg:h-8 md:w-8 text-muted-foreground" />
               <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full"></span>
@@ -168,7 +171,14 @@ export default function ClinicLayout({
               <DropdownMenuTrigger asChild>
                 <div className="h-10 rounded-full bg-primary/20 flex items-center gap-2 md:gap-3 px-2 cursor-pointer hover:bg-primary/30 transition-colors">
                   <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
-                    <Building2 className="h-5 w-5 text-primary" />
+                    <Image
+                      src="/images/avatar.png"
+                      alt="Doctor Avatar"
+                      width={32}
+                      height={32}
+                      className="rounded-full"
+                      onError={(e) => (e.currentTarget.src = "https://placehold.co/32x32/6002ee/ffffff?text=D")}
+                    />
                   </div>
                   <span className="hidden md:inline text-lg font-medium text-primary">|</span>
                   <ChevronDown className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
@@ -177,28 +187,28 @@ export default function ClinicLayout({
               <DropdownMenuContent align="end" className="w-56 bg-white border-none">
                 <div className="px-2 py-1.5">
                   <p className="text-lg font-medium text-primary">
-                    {clinic?.name || "Clinic Admin"}
+                    Dr. {doctor?.name || "Doctor"}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {clinic?.location || "Healthcare Facility"}
+                    {doctor?.specialty || "Healthcare Professional"}
                   </p>
                 </div>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="cursor-pointer">
-                  <Link href="/dashboard/clinic/settings" className="flex items-center">
+                  <Link href="/dashboard/doctor/settings" className="flex items-center">
                     <User className="mr-2 h-4 w-4" />
-                    <span>Clinic Profile</span>
+                    <span>Profile</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem className="cursor-pointer">
-                  <Link href="/dashboard/clinic/settings" className="flex items-center">
+                  <Link href="/dashboard/doctor/settings" className="flex items-center">
                     <Settings className="mr-2 h-4 w-4" />
                     <span>Settings</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="cursor-pointer text-destructive focus:text-destructive">
-                  <Link href="/dashboard/clinic/logout" className="flex items-center">
+                  <Link href="/dashboard/doctor/logout" className="flex items-center">
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Log Out</span>
                   </Link>

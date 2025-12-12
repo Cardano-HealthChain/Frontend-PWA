@@ -4,7 +4,7 @@ import Link from "next/link";
 
 export const Hero = () => {
   return (
-    <section className="px-10 lg:px-24 grid grid-cols-1 gap-12 py-20 md:grid-cols-2 md:py-32 bg-[#EFF0FB]">
+    <section className="px-10 lg:px-24 grid grid-cols-1 gap-12 py-10 md:grid-cols-2 md:py-16 bg-[#EFF0FB]">
       {/* Left Column (Text) */}
       <div className="flex flex-col items-start justify-center text-left">
         <div className="flex items-center w-full md:w-1/2 justify-between mb-4 rounded-full px-3 py-2 shadow-md border border-gray-50 bg-white">
