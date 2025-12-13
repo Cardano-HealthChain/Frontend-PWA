@@ -1,16 +1,13 @@
 import { create } from 'zustand';
 
-// Define the possible roles for your application
-export type UserRole = 'resident' | 'clinic' | 'authority' | null;
+export type UserRole = 'resident' | 'clinic' | 'doctor' | 'authority' | null;
 
 interface AuthState {
     isAuthenticated: boolean;
     userRole: UserRole;
     token: string | null;
-    // This state tells us if the initial check (from local storage/cookie) is done
     isReady: boolean;
 
-    // Actions
     login: (token: string, role: UserRole) => void;
     logout: () => void;
     setReady: (ready: boolean) => void;
@@ -23,8 +20,13 @@ export const useAuthStore = create<AuthState>((set) => ({
     isReady: false,
 
     login: (token, role) => {
-        localStorage.setItem('auth_token', token); // Persist token
-        localStorage.setItem('user_role', role || ''); // Persist role
+        // Store in localStorage
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('auth_token', token);
+            localStorage.setItem('user_role', role || '');
+        }
+        
+        // Update store state
         set({
             isAuthenticated: true,
             userRole: role,
@@ -33,8 +35,13 @@ export const useAuthStore = create<AuthState>((set) => ({
     },
 
     logout: () => {
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('user_role');
+        if (typeof window !== 'undefined') {
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('user_role');
+            localStorage.removeItem('wallet_address');
+            localStorage.removeItem('auth_method');
+        }
+        
         set({
             isAuthenticated: false,
             userRole: null,
@@ -45,8 +52,10 @@ export const useAuthStore = create<AuthState>((set) => ({
     setReady: (ready) => set({ isReady: ready }),
 }));
 
-// Function to initialize state from storage on first load (must be called in layout)
+// Initialize auth from localStorage (call this in your root layout/provider)
 export const initializeAuth = () => {
+    if (typeof window === 'undefined') return;
+    
     const token = localStorage.getItem('auth_token');
     const role = localStorage.getItem('user_role') as UserRole;
 
@@ -57,5 +66,6 @@ export const initializeAuth = () => {
             token: token
         });
     }
+    
     useAuthStore.setState({ isReady: true });
 };

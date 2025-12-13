@@ -17,6 +17,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import axios from "axios";
 import {
   Form,
   FormControl,
@@ -26,10 +27,11 @@ import {
   FormMessage,
   FormDescription,
 } from "@/components/ui/form";
-import { signup, setAuthToken, walletSignup } from "@/lib/api";
+import { signup, setAuthToken, walletSignup, getWalletChallenge, linkWallet } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { HealthChainLoader } from "@/components/ui/HealthChainLoader";
 import { useWalletAuth } from "@/hooks/useWalletAuth";
+import { useAuthStore } from "@/store/authStore";
 import Image from "next/image";
 
 // Zod Schema for Signup
@@ -60,10 +62,11 @@ type SignupFormData = z.infer<typeof signupSchema>;
 export default function ResidentSignUpPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const [error, setError] = useState<string | null>(null); 
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingText, setLoadingText] = useState("Creating Your Account...");
-
+  const storeLogin = useAuthStore((state) => state.login);
   // Wallet authentication hook
   const {
     isLaceInstalled,
@@ -71,6 +74,7 @@ export default function ResidentSignUpPage() {
     connectWallet,
     signMessage,
   } = useWalletAuth();
+
 
   const form = useForm<SignupFormData>({
     resolver: zodResolver(signupSchema),
@@ -81,6 +85,24 @@ export default function ResidentSignUpPage() {
       password: "",
     },
   });
+
+  // Function to determine which dashboard to route to based on role
+  const getDashboardPath = (role: string) => {
+    switch (role) {
+      case 'resident':
+        return '/dashboard/resident';
+      case 'clinic':
+        return '/dashboard/clinic';
+      case 'doctor':
+        return '/dashboard/doctor';
+      case 'authority':
+        return '/dashboard/authority';
+      case 'admin':
+        return '/dashboard/admin';
+      default:
+        return '/dashboard';
+    }
+  }
 
   // Traditional email/password signup
   const handleEmailSignup = async (data: SignupFormData) => {
@@ -137,12 +159,24 @@ export default function ResidentSignUpPage() {
       setIsLoading(false);
     }
   };
-
-  // Wallet-based signup
+  const [selectedRole, setSelectedRole] = useState<string>('resident');
+  //Wallet Signup
   const handleWalletSignup = async () => {
     try {
-      setIsLoading(true);
-      setLoadingText("Connecting to Lace Wallet...");
+      setIsLoading(true)
+      setError(null)
+      setLoadingText("Connecting to Lace Wallet...")
+
+      // Validate role is selected
+      if (!selectedRole) {
+        toast({
+          title: "Role Required",
+          description: "Please select your role before signing up.",
+          variant: "destructive",
+        })
+        setIsLoading(false)
+        return
+      }
 
       // Check if Lace is installed
       if (!isLaceInstalled()) {
@@ -150,15 +184,136 @@ export default function ResidentSignUpPage() {
           title: "Lace Wallet Not Found",
           description: "Please install Lace wallet from lace.io to continue.",
           variant: "destructive",
+        })
+        setIsLoading(false)
+        return
+      }
+
+      // Connect wallet
+      const connectionResult = await connectWallet()
+
+      if (!connectionResult.success || !connectionResult.walletAddress) {
+        toast({
+          title: "Connection Failed",
+          description: connectionResult.error || "Failed to connect wallet",
+          variant: "destructive",
+        })
+        setIsLoading(false)
+        return
+      }
+
+      // Validate stake address
+      if (!connectionResult.stakeAddress) {
+        toast({
+          title: "Stake Address Required",
+          description: "Your wallet must have a stake address to sign up.",
+          variant: "destructive",
+        })
+        setIsLoading(false)
+        return
+      }
+
+      setLoadingText("Requesting Authentication Challenge...")
+
+      // Get challenge
+      const challenge = await getWalletChallenge(connectionResult.walletAddress)
+
+      setLoadingText("Please Sign Message in Your Wallet...")
+
+      // Sign challenge
+      const signResult = await signMessage(challenge)
+
+      if (!signResult.success || !signResult.signature || !signResult.publicKey) {
+        toast({
+          title: "Signature Failed",
+          description: signResult.error || "Failed to sign message",
+          variant: "destructive",
+        })
+        setIsLoading(false)
+        return
+      }
+
+      setLoadingText("Creating Your Account...")
+
+      // Call signup API
+      const response = await walletSignup({
+        walletAddress: connectionResult.walletAddress,
+        stakeAddress: connectionResult.stakeAddress,
+        publicKey: signResult.publicKey,
+        signature: signResult.signature,
+        message: challenge,
+        role: selectedRole,
+      })
+
+      const { token, role } = response.data
+
+      if (token && role) {
+        storeLogin(token, role as any)
+
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('wallet_address', connectionResult.walletAddress)
+          localStorage.setItem('stake_address', connectionResult.stakeAddress)
+          localStorage.setItem('auth_method', 'wallet')
+        }
+
+        toast({
+          title: "Account Created! 🎉",
+          description: "Welcome to HealthChain.",
+        })
+
+        await new Promise(resolve => setTimeout(resolve, 100))
+
+        router.push(getDashboardPath(role))
+      } else {
+        setError("Signup failed. Please try again.")
+        setIsLoading(false)
+      }
+    } catch (err: any) {
+      console.error("Wallet signup error:", err)
+
+      let errorMessage = "Failed to create account. Please try again."
+
+      if (axios.isAxiosError(err) && err.response) {
+        errorMessage = err.response.data?.message || errorMessage
+
+        if (err.response.status === 409) {
+          errorMessage = "This wallet is already registered. Please login instead."
+        }
+      }
+
+      toast({
+        title: "Signup Failed",
+        description: errorMessage,
+        variant: "destructive",
+      })
+
+      setError(errorMessage)
+      setIsLoading(false)
+    }
+  }
+
+  // Link wallet to existing account (for users who signed up with email)
+  const handleLinkWallet = async () => {
+    try {
+      // Get current auth token
+      const currentToken = localStorage.getItem('auth_token');
+
+      if (!currentToken) {
+        toast({
+          title: "Authentication Required",
+          description: "Please login first to link a wallet.",
+          variant: "destructive",
         });
-        setIsLoading(false);
         return;
       }
 
-      // Connect wallet and get address
+      setIsLoading(true);
+      setLoadingText("Connecting to Lace Wallet...");
+
+      // Connect wallet
       const connectionResult = await connectWallet();
 
-      if (!connectionResult.success) {
+      if (!connectionResult.success || !connectionResult.walletAddress) {
         toast({
           title: "Connection Failed",
           description: connectionResult.error || "Failed to connect wallet",
@@ -168,66 +323,61 @@ export default function ResidentSignUpPage() {
         return;
       }
 
-      setLoadingText("Signing Authentication Message...");
+      setLoadingText("Requesting Authentication Challenge...");
 
-      // Generate a unique message to sign (for authentication proof)
-      const authMessage = `HealthChain Authentication\nTimestamp: ${Date.now()}\nAction: Signup\nRole: Resident`;
+      // Get challenge
+      const challenge = await getWalletChallenge(connectionResult.walletAddress);
 
-      // Sign the message with wallet
-      const signResult = await signMessage(authMessage);
+      setLoadingText("Please Sign Message in Your Wallet...");
+
+      // Sign challenge
+      const signResult = await signMessage(challenge);
 
       if (!signResult.success) {
+        throw new Error(signResult.error || "Failed to sign message");
+      }
+
+      setLoadingText("Linking Wallet to Your Account...");
+
+      // Link wallet
+      const response = await linkWallet(
+        {
+          walletAddress: connectionResult.walletAddress,
+          stakeAddress: connectionResult.stakeAddress || null,
+          publicKey: signResult.publicKey!,
+          signature: signResult.signature!,
+          message: challenge,
+        },
+        currentToken
+      );
+
+      if (response.data.success) {
+        // Store wallet info
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('wallet_address', connectionResult.walletAddress);
+          if (connectionResult.stakeAddress) {
+            localStorage.setItem('stake_address', connectionResult.stakeAddress);
+          }
+        }
+
         toast({
-          title: "Signature Failed",
-          description: signResult.error || "Failed to sign message",
-          variant: "destructive",
+          title: "Wallet Linked! 🎉",
+          description: "Your wallet has been successfully linked to your account.",
         });
+
         setIsLoading(false);
-        return;
       }
+    } catch (err: any) {
+      console.error("Link wallet error:", err);
 
-      setLoadingText("Creating Blockchain Account...");
+      let errorMessage = "Failed to link wallet. Please try again.";
 
-      // Call wallet signup API endpoint
-      const response = await walletSignup({
-        walletAddress: connectionResult.walletAddress!,
-        stakeAddress: connectionResult.stakeAddress! || undefined,
-        publicKey: signResult.publicKey!,
-        signature: signResult.signature!,
-        message: authMessage,
-        role: 'resident',
-      });
-
-      // Store JWT token and wallet info
-      setAuthToken(response.data.token);
-
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('wallet_address', connectionResult.walletAddress!);
-        localStorage.setItem('auth_method', 'wallet');
-        localStorage.setItem('user_role', 'resident');
+      if (axios.isAxiosError(err) && err.response) {
+        errorMessage = err.response.data?.message || errorMessage;
       }
 
       toast({
-        title: "Wallet Connected! 🎉",
-        description: "Your blockchain account has been created successfully.",
-      });
-
-      // Navigate to complete profile page
-      setTimeout(() => {
-        router.push("/sign-up/resident/complete-profile");
-      }, 1000);
-
-    } catch (error: any) {
-      console.error("Wallet signup error:", error);
-
-      let errorMessage = "Failed to sign up with wallet. Please try again.";
-
-      if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      }
-
-      toast({
-        title: "Wallet Signup Failed",
+        title: "Link Failed",
         description: errorMessage,
         variant: "destructive",
       });
@@ -235,6 +385,7 @@ export default function ResidentSignUpPage() {
       setIsLoading(false);
     }
   };
+
 
   return (
     <>
