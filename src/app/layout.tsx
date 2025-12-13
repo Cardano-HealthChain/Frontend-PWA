@@ -3,6 +3,7 @@ import { Urbanist } from "next/font/google" // Import Urbanist
 import "./globals.css"
 import { cn } from "@/lib/utils" // Make sure you have this util from shadcn
 import { Toaster } from "@/components/ui/toaster"
+import { AuthProvider } from '@/components/AuthProvider';
 // import { BackendWarmup } from "@/components/backendWarmup.tsx
 
 // Setup the font with weights and a CSS variable
@@ -31,7 +32,6 @@ export const metadata: Metadata = {
     type: "website"
   },
   manifest: "/manifest.json",
-  themeColor: "#4F46E5",
   icons: {
     icon: "/icons/icon-192x192.png",
     apple: "/icons/icon-192x192.png",
@@ -39,20 +39,18 @@ export const metadata: Metadata = {
   }
 } 
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode
-}>) {
+export default function RootLayout({  children,}: Readonly<{  children: React.ReactNode}>) {
   return (
     <html lang="en">
       <body
         className={cn(
           "min-h-screen bg-background font-sans antialiased",
-          urbanist.variable // Apply the font variable
+          urbanist.variable
         )}
       >
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
         <Toaster />
       </body>
     </html>

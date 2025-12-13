@@ -17,7 +17,7 @@ import Image from "next/image"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import React from "react"
-import { login as apiLogin, walletLogin } from "@/lib/api";
+import { login as apiLogin, walletLogin, getWalletChallenge } from "@/lib/api";
 import { z } from 'zod';
 import { useAuthStore } from "@/store/authStore";
 import { HealthChainLoader } from "@/components/ui/HealthChainLoader";
@@ -37,7 +37,7 @@ const loginSchema = z.object({
     .min(1, 'Password is required'),
 });
 
-type LoginFormData = z.infer<typeof loginSchema>;
+type LoginFormData = z.infer<typeof loginSchema>; 
 
 export default function LoginPage() {
   const router = useRouter();
@@ -102,13 +102,9 @@ export default function LoginPage() {
       const { token, role } = response.data;
 
       if (token && role) {
-        storeLogin(token, role as any);
-
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('auth_token', token);
-          localStorage.setItem('user_role', role);
-          localStorage.setItem('auth_method', 'email');
-        }
+         storeLogin(token, role as any);
+          // Add a small delay to ensure state is set
+        await new Promise(resolve => setTimeout(resolve, 50));
 
         router.push(getDashboardPath(role));
       } else {
@@ -128,104 +124,119 @@ export default function LoginPage() {
     }
   };
 
-  // Wallet-based login
+  // Wallet-based login with proper challenge flow
   const handleWalletLogin = async () => {
     try {
-      setIsLoading(true);
-      setLoadingText("Connecting to Lace Wallet...");
+      setIsLoading(true)
+      setError(null)
+      setLoadingText("Connecting to Lace Wallet...")
 
-      // Check if Lace is installed
+      // Step 1: Check if Lace is installed
       if (!isLaceInstalled()) {
         toast({
           title: "Lace Wallet Not Found",
           description: "Please install Lace wallet from lace.io to continue.",
           variant: "destructive",
-        });
-        setIsLoading(false);
-        return;
+        })
+        setIsLoading(false)
+        return
       }
 
-      // Connect wallet and get address
-      const connectionResult = await connectWallet();
+      // Step 2: Connect wallet and get address
+      const connectionResult = await connectWallet()
 
-      if (!connectionResult.success) {
+      if (!connectionResult.success || !connectionResult.walletAddress) {
         toast({
           title: "Connection Failed",
           description: connectionResult.error || "Failed to connect wallet",
           variant: "destructive",
-        });
-        setIsLoading(false);
-        return;
+        })
+        setIsLoading(false)
+        return
       }
 
-      setLoadingText("Signing Authentication Message...");
+      setLoadingText("Requesting Authentication Challenge...")
 
-      // Generate a unique message to sign
-      const authMessage = `HealthChain Authentication\nTimestamp: ${Date.now()}\nAction: Login\nAddress: ${connectionResult.walletAddress}`;
+      // Step 3: Get challenge from backend
+      const challenge = await getWalletChallenge(connectionResult.walletAddress)
 
-      // Sign the message with wallet
-      const signResult = await signMessage(authMessage);
+      setLoadingText("Please Sign Message in Your Wallet...")
 
-      if (!signResult.success) {
+      // Step 4: Sign the challenge (EXACT challenge, no modifications)
+      const signResult = await signMessage(challenge)
+
+      if (!signResult.success || !signResult.signature || !signResult.publicKey) {
         toast({
           title: "Signature Failed",
           description: signResult.error || "Failed to sign message",
           variant: "destructive",
-        });
-        setIsLoading(false);
-        return;
+        })
+        setIsLoading(false)
+        return
       }
 
-      setLoadingText("Verifying Blockchain Identity...");
+      setLoadingText("Verifying Blockchain Identity...")
 
-      // Call wallet login API endpoint
+      // Step 5: Call wallet login API endpoint
       const response = await walletLogin({
-        walletAddress: connectionResult.walletAddress!,
-        signature: signResult.signature!,
-        message: authMessage,
-        publicKey: signResult.publicKey!,
-        stakeAddress: connectionResult.stakeAddress || undefined,
-      });
+        walletAddress: connectionResult.walletAddress,
+        publicKey: signResult.publicKey,
+        signature: signResult.signature,
+        message: challenge, // Use the exact challenge
+        stakeAddress: connectionResult.stakeAddress || null,
+      })
 
-      const { token, role } = response.data;
+      const { token, role } = response.data
 
       if (token && role) {
-        storeLogin(token, role as any);
+        // Store auth data
+        storeLogin(token, role as any)
 
         if (typeof window !== 'undefined') {
-          localStorage.setItem('auth_token', token);
-          localStorage.setItem('user_role', role);
-          localStorage.setItem('wallet_address', connectionResult.walletAddress!);
-          localStorage.setItem('auth_method', 'wallet');
+          localStorage.setItem('wallet_address', connectionResult.walletAddress)
+          localStorage.setItem('auth_method', 'wallet')
+          if (connectionResult.stakeAddress) {
+            localStorage.setItem('stake_address', connectionResult.stakeAddress)
+          }
         }
 
         toast({
           title: "Login Successful! 🎉",
           description: "Welcome back to HealthChain.",
-        });
+        })
 
-        router.push(getDashboardPath(role));
+        // Small delay to ensure storage is complete
+        await new Promise(resolve => setTimeout(resolve, 100))
+
+        router.push(getDashboardPath(role))
       } else {
-        setError("Wallet login failed. Please try again.");
+        setError("Wallet login failed. Please try again.")
+        setIsLoading(false)
       }
     } catch (err: any) {
-      console.error("Wallet login error:", err);
+      console.error("Wallet login error:", err)
 
-      let errorMessage = "Wallet not registered. Please sign up first.";
+      let errorMessage = "Wallet not registered. Please sign up first."
 
       if (axios.isAxiosError(err) && err.response) {
-        errorMessage = err.response.data?.message || errorMessage;
+        errorMessage = err.response.data?.message || errorMessage
+
+        // If wallet not found, suggest signup
+        if (err.response.status === 404) {
+          errorMessage = "Wallet not found. Please sign up first."
+        }
       }
 
       toast({
         title: "Wallet Login Failed",
         description: errorMessage,
         variant: "destructive",
-      });
+      })
 
-      setIsLoading(false);
+      setError(errorMessage)
+      setIsLoading(false)
     }
-  };
+  }
 
   const onSubmit = (data: LoginFormData) => {
     handleEmailLogin(data);

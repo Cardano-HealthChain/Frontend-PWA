@@ -1,7 +1,10 @@
 import axios, { AxiosInstance, AxiosError, AxiosResponse } from 'axios';
 
 // Base API URL
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://backend-apis-production-5e22.up.railway.app';
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const WALLET_URL = process.env.NEXT_WALLET_API_URL;
+
+const WALLET_AUTH_URL = WALLET_URL ? WALLET_URL : `${API_URL}/api/v1/wallet-auth`; 
 
 // Create Axios instance
 const apiClient: AxiosInstance = axios.create({
@@ -175,68 +178,87 @@ export interface Alert {
   read: boolean;
   metadata?: Record<string, any>;
 }
+// ============================================================================
+// WALLET AUTHENTICATION ENDPOINTS
+// ============================================================================
 
 /**
- * Sign up with wallet
+ * Get challenge for wallet authentication
  */
-export interface WalletSignupData {
-  walletAddress: string;
-  stakeAddress?: string;
-  publicKey: string;
-  signature: string;
-  message: string;
-  role: 'resident' | 'clinic' | 'authority';
-}
-
-export const walletSignup = async (data: WalletSignupData) => {
-  return apiClient.post('/auth/wallet-signup', data);
-};
-
-/**
- * Login with wallet
- */
-export interface WalletLoginData {
-  walletAddress: string;
-  signature: string;
-  message: string;
-  publicKey: string;
-  stakeAddress?: string;
-}
-
-export const walletLogin = async (data: WalletLoginData) => {
-  return apiClient.post('/auth/wallet-login', data);
-};
-
-/**
- * Link wallet to existing account
- */
-export interface LinkWalletData {
-  walletAddress: string;
-  stakeAddress?: string;
-  publicKey: string;
-  signature: string;
-  message: string;
-}
-
-export const linkWallet = async (data: LinkWalletData) => {
-  return apiClient.post('/auth/link-wallet', data);
-};
-
-/**
- * Verify wallet signature (utility function)
- */
-export const verifyWalletSignature = async (
-  walletAddress: string,
-  signature: string,
-  message: string,
-  publicKey: string
-) => {
-  return apiClient.post('/auth/verify-signature', {
-    walletAddress,
-    signature,
-    message,
-    publicKey,
+export const getWalletChallenge = async (walletAddress: string) => {
+  const response = await axios.get(`${WALLET_AUTH_URL}/challenge`, {
+    params: { walletAddress }
   });
+  return response.data; // Returns plain text challenge string
+};
+
+/**
+ * Verify wallet signature (optional utility)
+ */
+export const verifyWalletSignature = async (data: {
+  walletAddress: string;
+  message: string;
+  signature: string;
+  publicKey: string;
+}) => {
+  const response = await axios.post(`${WALLET_AUTH_URL}/verify`, data);
+  return response.data; // Returns true | false
+};
+
+/**
+ * Wallet Signup - Register new user with wallet
+ */
+export const walletSignup = async (data: {
+  walletAddress: string;
+  stakeAddress: string | null;
+  publicKey: string;
+  signature: string;
+  message: string;
+  role: string;
+}) => {
+  return axios.post(`${WALLET_AUTH_URL}/wallet-signup`, data);
+};
+
+/**
+ * Wallet Login - Authenticate existing wallet user
+ */
+export const walletLogin = async (data: {
+  walletAddress: string;
+  publicKey: string;
+  signature: string;
+  message: string;
+  stakeAddress?: string | null; // Optional for login
+}) => {
+  return axios.post(`${WALLET_AUTH_URL}/wallet-login`, data);
+};
+
+/**
+ * Link Wallet - Link wallet to existing authenticated user
+ * Requires JWT token in Authorization header
+ */
+export const linkWallet = async (
+  data: {
+    walletAddress: string;
+    stakeAddress: string | null;
+    publicKey: string;
+    signature: string;
+    message: string;
+  },
+  token: string
+) => {
+  return axios.post(`${WALLET_AUTH_URL}/link-wallet`, data, {
+    headers: {
+      'Authorization': `Bearer ${token}`
+    }
+  });
+};
+/**
+ * Complete wallet authentication flow
+ * Gets challenge, returns it for signing
+ */
+export const initiateWalletAuth = async (walletAddress: string) => {
+  const challenge = await getWalletChallenge(walletAddress);
+  return challenge;
 };
 
 
@@ -449,6 +471,7 @@ export const getAuditLogs = async (page: number = 0) => {
   return apiClient.get<AuditLog>(`/api/v1/resident/audit?page=${page}`);
 };
 
+
 // ============================================================================
 // DASHBOARD - FETCH ALL DATA AT ONCE
 // ============================================================================
@@ -538,6 +561,16 @@ export const loadDashboardSafe = async (): Promise<Partial<DashboardData>> => {
 // UTILITY FUNCTIONS
 // ============================================================================
 
+/**
+ * Set auth token for subsequent requests
+ */
+// export const setAuthToken = (token: string | null) => {
+//   if (token) {
+//     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+//   } else {
+//     delete axios.defaults.headers.common['Authorization'];
+//   }
+// };
 /**
  * Store auth token
  */

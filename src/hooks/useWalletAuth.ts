@@ -1,7 +1,8 @@
 // hooks/useWalletAuth.ts
 import { useState, useEffect } from 'react';
-import { Blockfrost, Lucid } from 'lucid-cardano';
+import axios from 'axios';
 
+const API_BASE_URL = process.env.NEXT_WALLET_API_URL;
 interface WalletAuthState {
     isConnecting: boolean;
     isConnected: boolean;
@@ -10,11 +11,10 @@ interface WalletAuthState {
     error: string | null;
 }
 
-// FIX: Update this interface to accept null
 interface WalletAuthResult {
     success: boolean;
     walletAddress?: string;
-    stakeAddress?: string | null; // Changed from string | undefined
+    stakeAddress?: string | null;
     publicKey?: string;
     signature?: string;
     error?: string;
@@ -48,43 +48,38 @@ export const useWalletAuth = () => {
         setState(prev => ({ ...prev, isConnecting: true, error: null }));
 
         try {
-            // Initialize Lucid with Preprod network
-            const lucid = await Lucid.new(
-                new Blockfrost(
-                    'https://cardano-preprod.blockfrost.io/api/v0',
-                    process.env.NEXT_PUBLIC_BLOCKFROST_API_KEY || ''
-                ),
-                'Preprod'
-            );
-
-            // Enable Lace wallet
+            // Enable the wallet
             const walletApi = await window.cardano.lace.enable();
-            lucid.selectWallet(walletApi);
 
-            // Get wallet address
-            const address = await lucid.wallet.address();
+            // Get used addresses
+            const usedAddresses = await walletApi.getUsedAddresses();
+            if (!usedAddresses || usedAddresses.length === 0) {
+                throw new Error('No addresses found in wallet');
+            }
 
-            // Get stake address (unique identifier for the wallet)
-            // FIX: This can return null, so handle it properly
-            const rewardAddress = await lucid.wallet.rewardAddress();
+            const walletAddress = usedAddresses[0];
 
-            // Get public key for additional verification
-            const utxos = await lucid.wallet.getUtxos();
-            const publicKeyHash = lucid.utils.paymentCredentialOf(address).hash;
+            // Get reward/stake addresses
+            const rewardAddresses = await walletApi.getRewardAddresses();
+            const stakeAddress = rewardAddresses && rewardAddresses.length > 0
+                ? rewardAddresses[0]
+                : null;
+
+            // Get public key (we'll need this for signing)
+            // Note: We'll get the actual public key during signing
 
             setState({
                 isConnecting: false,
                 isConnected: true,
-                walletAddress: address,
-                stakeAddress: rewardAddress,
+                walletAddress: walletAddress,
+                stakeAddress: stakeAddress,
                 error: null,
             });
 
             return {
                 success: true,
-                walletAddress: address,
-                stakeAddress: rewardAddress, // This can be null, but interface now accepts it
-                publicKey: publicKeyHash,
+                walletAddress: walletAddress,
+                stakeAddress: stakeAddress,
             };
         } catch (error: any) {
             const errorMessage = error.message || 'Failed to connect wallet';
@@ -104,6 +99,18 @@ export const useWalletAuth = () => {
         }
     };
 
+    // Get challenge from backend
+    const getChallenge = async (walletAddress: string): Promise<string> => {
+        try {
+            const response = await axios.get(`${API_BASE_URL}/challenge`, {
+                params: { walletAddress }
+            });
+            return response.data; // Plain text challenge
+        } catch (error: any) {
+            throw new Error(error.response?.data?.message || 'Failed to get challenge');
+        }
+    };
+
     // Sign a message with the wallet (for authentication proof)
     const signMessage = async (message: string): Promise<WalletAuthResult> => {
         if (!state.isConnected || !state.walletAddress) {
@@ -114,34 +121,66 @@ export const useWalletAuth = () => {
         }
 
         try {
-            const lucid = await Lucid.new(
-                new Blockfrost(
-                    'https://cardano-preprod.blockfrost.io/api/v0',
-                    process.env.NEXT_PUBLIC_BLOCKFROST_API_KEY || ''
-                ),
-                'Preprod'
+            const walletApi = await window.cardano.lace.enable();
+
+            // Convert message to hex for signing
+            // IMPORTANT: Sign the exact challenge as-is, no modifications
+            const messageHex = Buffer.from(message, 'utf8').toString('hex');
+
+            // Sign the message with the wallet address
+            const signedData = await walletApi.signData(
+                state.walletAddress,
+                messageHex
             );
 
-            const walletApi = await window.cardano.lace.enable();
-            lucid.selectWallet(walletApi);
-
-            // Sign the message
-            const address = await lucid.wallet.address();
-            const payload = Buffer.from(message).toString('hex');
-
-            // Get signature from wallet
-            const signedMessage = await walletApi.signData(address, payload);
-
+            // signedData contains { signature, key }
+            // Both are already in the correct format from the wallet
             return {
                 success: true,
-                signature: signedMessage.signature,
-                publicKey: signedMessage.key,
-                walletAddress: address,
+                signature: signedData.signature, // Base64 encoded
+                publicKey: signedData.key,       // Base64 encoded
+                walletAddress: state.walletAddress,
             };
         } catch (error: any) {
             return {
                 success: false,
                 error: error.message || 'Failed to sign message',
+            };
+        }
+    };
+
+    // Complete wallet authentication flow (get challenge + sign)
+    const authenticateWallet = async (): Promise<WalletAuthResult> => {
+        if (!state.walletAddress) {
+            return {
+                success: false,
+                error: 'Wallet not connected',
+            };
+        }
+
+        try {
+            // Step 1: Get challenge from backend
+            const challenge = await getChallenge(state.walletAddress);
+
+            // Step 2: Sign the challenge
+            const signResult = await signMessage(challenge);
+
+            if (!signResult.success) {
+                return signResult;
+            }
+
+            // Return everything needed for login/signup
+            return {
+                success: true,
+                walletAddress: state.walletAddress,
+                stakeAddress: state.stakeAddress,
+                signature: signResult.signature,
+                publicKey: signResult.publicKey,
+            };
+        } catch (error: any) {
+            return {
+                success: false,
+                error: error.message || 'Authentication failed',
             };
         }
     };
@@ -159,6 +198,7 @@ export const useWalletAuth = () => {
         // Clear any stored wallet data
         if (typeof window !== 'undefined') {
             localStorage.removeItem('wallet_connected');
+            localStorage.removeItem('wallet_address');
         }
     };
 
@@ -186,6 +226,8 @@ export const useWalletAuth = () => {
         isLaceInstalled,
         connectWallet,
         signMessage,
+        authenticateWallet,
+        getChallenge,
         disconnectWallet,
     };
 };
