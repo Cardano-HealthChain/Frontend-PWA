@@ -41,7 +41,7 @@ const PatientRow = ({ patient }: { patient: any }) => {
   };
 
   return (
-    <tr className="border-b hover:bg-secondary/50 transition-colors">
+    <tr className="border-b border-primary hover:bg-secondary/50 transition-colors">
       <td className="py-4 px-4">
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center font-semibold">
@@ -182,7 +182,7 @@ export default function DoctorPatientsPage() {
           </p>
         </div>
         <Link href="/dashboard/doctor/patients/new">
-          <Button>
+          <Button className="rounded-xl">
             <UserPlus className="mr-2 h-4 w-4" />
             Add New Patient
           </Button>
@@ -191,7 +191,7 @@ export default function DoctorPatientsPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
+        <Card className="border-none shadow-sm">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
@@ -204,7 +204,7 @@ export default function DoctorPatientsPage() {
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="border-none shadow-sm">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
@@ -217,7 +217,7 @@ export default function DoctorPatientsPage() {
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="border-none shadow-sm">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
@@ -230,7 +230,7 @@ export default function DoctorPatientsPage() {
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="border-none shadow-sm">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
@@ -246,10 +246,10 @@ export default function DoctorPatientsPage() {
       </div>
 
       {/* Filters */}
-      <Card>
+      <Card className="border-none shadow-sm">
         <CardHeader>
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1 relative">
+          <div className="flex flex-col md:flex-row gap-4 sm:justify-between">
+            <div className="flex-1 relative max-w-sm">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search by name or ID..."
@@ -263,7 +263,7 @@ export default function DoctorPatientsPage() {
                 <Filter className="h-4 w-4 mr-2" />
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white border-none">
                 <SelectItem value="all">All Status</SelectItem>
                 <SelectItem value="critical">Critical</SelectItem>
                 <SelectItem value="stable">Stable</SelectItem>
@@ -276,7 +276,7 @@ export default function DoctorPatientsPage() {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b bg-secondary/50">
+                <tr className="border-b border-primary bg-secondary/50">
                   <th className="py-3 px-4 text-left text-sm font-semibold">Patient</th>
                   <th className="py-3 px-4 text-left text-sm font-semibold">Age/Gender</th>
                   <th className="py-3 px-4 text-left text-sm font-semibold">Condition</th>

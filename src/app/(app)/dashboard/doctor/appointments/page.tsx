@@ -25,7 +25,7 @@ const AppointmentCard = ({ appointment }: { appointment: any }) => {
   };
 
   return (
-    <Card className="hover:shadow-md transition-shadow">
+    <Card className="hover:shadow-md transition-shadow border-none">
       <CardContent className="p-4">
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-3">
@@ -165,11 +165,11 @@ export default function DoctorAppointmentsPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline">
+          <Button variant="outline" className="rounded-xl">
             <Filter className="mr-2 h-4 w-4" />
             Filter
           </Button>
-          <Button>
+          <Button  className="rounded-xl">
             <Plus className="mr-2 h-4 w-4" />
             New Appointment
           </Button>
@@ -178,7 +178,7 @@ export default function DoctorAppointmentsPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
+        <Card className="border-none shadow-sm">
           <CardContent className="pt-6">
             <div className="text-center">
               <p className="text-3xl font-bold text-primary">{stats.today}</p>
@@ -186,7 +186,7 @@ export default function DoctorAppointmentsPage() {
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="border-none shadow-sm">
           <CardContent className="pt-6">
             <div className="text-center">
               <p className="text-3xl font-bold text-blue-600">{stats.upcoming}</p>
@@ -194,7 +194,7 @@ export default function DoctorAppointmentsPage() {
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="border-none shadow-sm">
           <CardContent className="pt-6">
             <div className="text-center">
               <p className="text-3xl font-bold text-green-600">{stats.completed}</p>

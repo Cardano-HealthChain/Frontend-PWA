@@ -17,20 +17,20 @@ export default function DoctorRecordsPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Medical Records</h1>
+          <h1 className="text-2xl font-bold">Medical Records</h1>
           <p className="text-muted-foreground mt-1">Create and manage patient records</p>
         </div>
         <Link href="/dashboard/doctor/records/create">
-          <Button>
+          <Button className="rounded-xl">
             <Plus className="mr-2 h-4 w-4" />
             Create Record
           </Button>
         </Link>
       </div>
 
-      <Card>
+      <Card className="border-none shadow-sm">
         <CardHeader>
-          <div className="relative">
+          <div className="relative max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input placeholder="Search records..." className="pl-10" />
           </div>
@@ -39,7 +39,7 @@ export default function DoctorRecordsPage() {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b">
+                <tr className="border-b border-primary">
                   <th className="py-3 px-4 text-left">Record ID</th>
                   <th className="py-3 px-4 text-left">Patient</th>
                   <th className="py-3 px-4 text-left">Type</th>
@@ -50,7 +50,7 @@ export default function DoctorRecordsPage() {
               </thead>
               <tbody>
                 {records.map((record) => (
-                  <tr key={record.id} className="border-b hover:bg-secondary/50">
+                  <tr key={record.id} className="border-b border-primary hover:bg-secondary/50">
                     <td className="py-3 px-4">{record.id}</td>
                     <td className="py-3 px-4">{record.patient}</td>
                     <td className="py-3 px-4">{record.type}</td>

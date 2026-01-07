@@ -19,7 +19,7 @@ export default function DoctorNotificationsPage() {
 
       <div className="space-y-3">
         {notifications.map((notif) => (
-          <Card key={notif.id}>
+          <Card key={notif.id} className="border-none shadow-sm">
             <CardContent className="p-4">
               <div className="flex items-start gap-4">
                 <div className={`p-2 rounded-full bg-secondary ${notif.color}`}>
