@@ -18,9 +18,9 @@ export default function ClinicPatientsPage() {
         <p className="text-muted-foreground mt-1">View all patients across the clinic</p>
       </div>
 
-      <Card>
+      <Card className="shadow-lg border-none">
         <CardContent className="p-6">
-          <div className="relative mb-6">
+          <div className="relative mb-6 max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input placeholder="Search patients..." className="pl-10" />
           </div>
@@ -28,7 +28,7 @@ export default function ClinicPatientsPage() {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b">
+                <tr className="border-b border-primary">
                   <th className="py-3 px-4 text-left">Patient ID</th>
                   <th className="py-3 px-4 text-left">Name</th>
                   <th className="py-3 px-4 text-left">Assigned Doctor</th>
@@ -38,7 +38,7 @@ export default function ClinicPatientsPage() {
               </thead>
               <tbody>
                 {patients.map((patient) => (
-                  <tr key={patient.id} className="border-b hover:bg-secondary/50">
+                  <tr key={patient.id} className="border-b border-primary hover:bg-secondary/50">
                     <td className="py-3 px-4">{patient.id}</td>
                     <td className="py-3 px-4 font-medium">{patient.name}</td>
                     <td className="py-3 px-4">{patient.doctor}</td>

@@ -27,7 +27,7 @@ export default function ClinicAlertsPage() {
 
       <div className="space-y-3">
         {alerts.map((alert) => (
-          <Card key={alert.id} className={`border ${getAlertColor(alert.type)}`}>
+          <Card key={alert.id} className={`border-none ${getAlertColor(alert.type)}`}>
             <CardContent className="p-4">
               <div className="flex items-start gap-4">
                 <alert.icon className={`h-6 w-6 ${alert.type === 'critical' ? 'text-red-600' :

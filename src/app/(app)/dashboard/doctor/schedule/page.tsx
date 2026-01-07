@@ -17,15 +17,15 @@ export default function DoctorSchedulePage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">My Schedule</h1>
+          <h1 className="text-2xl font-bold">My Schedule</h1>
           <p className="text-muted-foreground mt-1">Manage your availability</p>
         </div>
-        <Button>Edit Schedule</Button>
+        <Button className="rounded-xl">Edit Schedule</Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {schedule.map((day) => (
-          <Card key={day.day}>
+          <Card key={day.day} className="border-none shadow-sm">
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <CalendarIcon className="h-5 w-5 text-primary" />

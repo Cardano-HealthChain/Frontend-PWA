@@ -2,31 +2,32 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { 
-  BarChart, 
-  Stethoscope, 
-  Users, 
-  Calendar, 
-  FileText, 
+import {
+  BarChart,
+  Stethoscope,
+  Users,
+  Calendar,
+  FileText,
   FileBarChart,
   PieChart,
   AlertCircle,
-  Settings, 
-  LogOut 
+  Settings,
+  LogOut
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePathname } from "next/navigation";
 
 const navItems = [
-  { href: "/dashboard/clinic", label: "Dashboard", icon: BarChart }, 
+  { href: "/dashboard/clinic", label: "Dashboard", icon: BarChart },
   { href: "/dashboard/clinic/doctors", label: "Doctors", icon: Stethoscope },
   { href: "/dashboard/clinic/patients", label: "Patients", icon: Users },
-  { href: "/dashboard/clinic/appointments", label: "Appointments", icon: Calendar },
   { href: "/dashboard/clinic/records", label: "Records", icon: FileText },
-  { href: "/dashboard/clinic/reports", label: "Reports", icon: FileBarChart },
-  { href: "/dashboard/clinic/analytics", label: "Analytics", icon: PieChart },
   { href: "/dashboard/clinic/alerts", label: "Alerts", icon: AlertCircle },
+  { href: "/dashboard/clinic/appointments", label: "Appointments", icon: Calendar, comingSoon: true },
+  { href: "/dashboard/clinic/reports", label: "Reports", icon: FileBarChart, comingSoon: true },
+  { href: "/dashboard/clinic/analytics", label: "Analytics", icon: PieChart, comingSoon: true },
 ];
+
 
 const secondaryItems = [
   { href: "/dashboard/clinic/settings", label: "Settings", icon: Settings },
@@ -63,24 +64,46 @@ export const ClinicSidebarNav = ({ clinic }: { clinic: { name: string; location?
         {/* Main Nav Items */}
         <ul className="space-y-2 mt-10">
           {navItems.map((item) => {
-            const ActiveIcon = item.icon;
-            return (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  className={cn(
-                    "flex items-center rounded-lg p-3 text-sm font-medium transition-colors",
-                    isActive(item.href)
+            const Icon = item.icon;
+            const disabled = item.comingSoon;
+
+            const content = (
+              <div
+                className={cn(
+                  "flex items-center justify-between rounded-lg p-3 text-sm font-medium transition-colors",
+                  disabled
+                    ? "opacity-50 cursor-not-allowed"
+                    : isActive(item.href)
                       ? "bg-white text-primary shadow-md"
                       : "text-primary-foreground/80 hover:bg-primary/80 hover:text-white"
-                  )}
-                >
-                  <ActiveIcon className="mr-3 h-5 w-5" />
+                )}
+              >
+                <div className="flex items-center">
+                  <Icon className="mr-3 h-5 w-5" />
                   {item.label}
-                </Link>
+                </div>
+
+                {disabled && (
+                  <span className="ml-2 rounded-xl bg-yellow-400/40 border border-yellow-400 px-2 py-0.5 text-[10px] font-semibold text-yellow-200 whitespace-nowrap">
+                    Coming Soon
+                  </span>
+                )}
+              </div>
+            );
+
+            return (
+              <li key={item.href}>
+                {disabled ? (
+                  content
+                ) : (
+                  <Link href={item.href}>
+                    {content}
+                  </Link>
+                )}
               </li>
             );
           })}
+
         </ul>
       </div>
 
@@ -107,13 +130,13 @@ export const ClinicSidebarNav = ({ clinic }: { clinic: { name: string; location?
             );
           })}
         </ul>
-        
+
         {/* Clinic Badge */}
         <div className="flex flex-col space-y-1 rounded-lg bg-primary-foreground/10 p-3 text-sm">
           <div className="flex items-center space-x-3">
             <span className="h-8 w-8 rounded-full bg-white text-primary flex items-center justify-center font-bold text-sm shrink-0">
               🏥
-            </span> 
+            </span>
             <div className="flex-1 min-w-0">
               <p className="font-medium truncate">
                 {clinic?.name || 'Clinic Admin'}

@@ -23,23 +23,23 @@ export default function ClinicDoctorsPage() {
           <p className="text-muted-foreground mt-1">Manage doctors and healthcare providers</p>
         </div>
         <Link href="/dashboard/clinic/doctors/add">
-          <Button>
+          <Button className="rounded-xl">
             <UserPlus className="mr-2 h-4 w-4" />
             Add Doctor
           </Button>
         </Link>
       </div>
 
-      <Card>
+      <Card className="shadow-lg border border-primary">
         <CardContent className="p-6">
-          <div className="relative mb-6">
+          <div className="relative mb-6 max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input placeholder="Search doctors..." className="pl-10" />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {doctors.map((doctor) => (
-              <Card key={doctor.id} className="border">
+              <Card key={doctor.id} className="border-none shadow-sm">
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-3">
